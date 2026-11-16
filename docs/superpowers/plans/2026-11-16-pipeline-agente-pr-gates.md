@@ -708,18 +708,18 @@ Na página do App: *Install App* → sua conta → **Only select repositories** 
 cd /Users/cristianocarvalho/Documents/harness/projeto03
 gh secret set APP_PRIVATE_KEY < ~/Downloads/<arquivo-baixado>.pem
 gh variable set APP_ID --body "<o App ID>"
-gh secret set ANTHROPIC_API_KEY
+gh secret set CLAUDE_CODE_OAUTH_TOKEN
 ```
 
-O último comando pede o valor no terminal (cole a chave da Anthropic; ela não aparece na tela). Depois apague o `.pem`:
+O último comando pede o valor no terminal (cole o token gerado por `claude setup-token`; ele não aparece na tela). Para gerar o token, rode `claude setup-token` num terminal seu e siga o login no navegador; ele imprime o token uma única vez. Depois apague o `.pem`:
 
 ```bash
 rm ~/Downloads/<arquivo-baixado>.pem
 ```
 
-- [ ] **Passo 8.4: Limitar o gasto da chave da Anthropic**
+- [ ] **Passo 8.4: Conhecer o limite da autenticação por assinatura**
 
-No console da Anthropic, use uma chave **só para este projeto** e defina um limite mensal baixo. É a rede de proteção caso o teto por execução falhe.
+O usuário não tem créditos de API da Anthropic, então o agente autentica com o token da **assinatura** Claude (`claude_code_oauth_token`), caminho oficial da `claude-code-action`. Consequências: (1) não existe limite de gasto em dólares por chave: o consumo sai do limite da assinatura, e o teto de turnos (`--max-turns`) passa a ser o freio principal; (2) um token vazado dá acesso ao uso da assinatura até ser revogado (revogue em claude.ai, em Settings); (3) por isso a decisão de tirar `Bash` das ferramentas do agente (Tarefa 11) fica ainda mais importante.
 
 - [ ] **Passo 8.5: Conferir (só os nomes, nunca os valores)**
 
@@ -728,7 +728,7 @@ gh secret list
 gh variable list
 ```
 
-Esperado: `APP_PRIVATE_KEY` e `ANTHROPIC_API_KEY` nos segredos; `APP_ID` nas variáveis.
+Esperado: `APP_PRIVATE_KEY` e `CLAUDE_CODE_OAUTH_TOKEN` nos segredos; `APP_ID` nas variáveis.
 
 ---
 
@@ -1162,14 +1162,14 @@ git push origin main
 
 - [ ] **Passo 11.1: Conferir as entradas da ação no hash fixado**
 
-A spec e este plano supõem que `anthropics/claude-code-action` aceita `anthropic_api_key`, `github_token`, `prompt`, `claude_args` e devolve `execution_file`. Confirme no hash do Passo 5.1:
+A spec e este plano supõem que `anthropics/claude-code-action` aceita `claude_code_oauth_token`, `github_token`, `prompt`, `claude_args` e devolve `execution_file`. Confirme no hash do Passo 5.1:
 
 ```bash
 SHA=<hash de anthropics/claude-code-action>
-gh api "repos/anthropics/claude-code-action/contents/action.yml?ref=$SHA" --jq .content | base64 -d | grep -nE "^  (anthropic_api_key|github_token|prompt|claude_args|execution_file):|^  [a-z_]+:$" | head -40
+gh api "repos/anthropics/claude-code-action/contents/action.yml?ref=$SHA" --jq .content | base64 -d | grep -nE "^  (claude_code_oauth_token|github_token|prompt|claude_args|execution_file):|^  [a-z_]+:$" | head -40
 ```
 
-Esperado: os cinco nomes aparecem. **Se algum nome for diferente, ajuste o YAML abaixo ao nome real antes de seguir.** Veja também no mesmo arquivo se a ação exige `id-token: write` quando `github_token` é fornecido; se exigir, adicione só essa permissão ao job e registre o motivo num comentário.
+Esperado: os cinco nomes aparecem (já confirmado em 2026-11-16 no hash `d1f58ad`: `claude_code_oauth_token`, `github_token`, `prompt`, `claude_args` e a saída `execution_file` existem). **Se algum nome for diferente, ajuste o YAML abaixo ao nome real antes de seguir.** Veja também no mesmo arquivo se a ação exige `id-token: write` quando `github_token` é fornecido; se exigir, adicione só essa permissão ao job e registre o motivo num comentário.
 
 - [ ] **Passo 11.2: Escrever o workflow**
 
@@ -1222,7 +1222,7 @@ jobs:
         id: claude
         uses: anthropics/claude-code-action@<SHA:anthropics/claude-code-action>
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           prompt: ${{ steps.caso.outputs.prompt }}
           claude_args: >-
