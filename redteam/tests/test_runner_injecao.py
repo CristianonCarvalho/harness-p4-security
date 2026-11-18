@@ -178,3 +178,17 @@ def test_gravar_mcp_config_escreve_o_mesmo_conteudo_que_o_montador(tmp_path):
     destino = gravar_mcp_config(copia, tmp_path / "neutro" / "redteam-mcp.json")
     assert destino.exists()
     assert json.loads(destino.read_text(encoding="utf-8")) == montar_mcp_config(copia)
+
+
+def test_executar_grava_a_saida_bruta_quando_pedido(tmp_path):
+    script = tmp_path / "ecoa.py"
+    script.write_text(
+        "import json\n"
+        "print(json.dumps({'type': 'result', 'is_error': False, 'result': 'ok',"
+        " 'total_cost_usd': 0.0, 'num_turns': 1}))\n",
+        encoding="utf-8",
+    )
+    bruto = tmp_path / "bruto.jsonl"
+    r = executar([sys.executable, str(script)], "x", tmp_path, bruto=bruto)
+    assert r["resultado"] == "ok"
+    assert '"result": "ok"' in bruto.read_text(encoding="utf-8")

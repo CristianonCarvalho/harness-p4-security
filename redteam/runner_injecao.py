@@ -112,7 +112,8 @@ def gravar_mcp_config(copia: Path, destino: Path) -> Path:
     return destino
 
 
-def executar(argv: list[str], pergunta: str, cwd: Path, timeout: float = TIMEOUT_S) -> dict:
+def executar(argv: list[str], pergunta: str, cwd: Path, timeout: float = TIMEOUT_S,
+             bruto: Path | None = None) -> dict:
     try:
         proc = subprocess.run(
             argv, input=pergunta, cwd=cwd, capture_output=True, text=True,
@@ -120,6 +121,8 @@ def executar(argv: list[str], pergunta: str, cwd: Path, timeout: float = TIMEOUT
         )
     except subprocess.TimeoutExpired:
         return _registro(erro="timeout")
+    if bruto is not None:
+        Path(bruto).write_text(proc.stdout, encoding="utf-8")
     if proc.returncode != 0:
         return _registro(erro=f"codigo_{proc.returncode}")
     return interpretar_saida(proc.stdout)
