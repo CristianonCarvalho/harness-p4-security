@@ -1,0 +1,82 @@
+{
+  "observacao": "custo e turnos vêm do execution_file de cada run (passo Orçamento); P3 main em 98e5477 durante o lote",
+  "casos": [
+    {
+      "caso": "01-bom",
+      "run": 44054358382,
+      "pr": 5,
+      "desfecho": "passou",
+      "gates": [],
+      "veredito": "ok",
+      "custo_usd": 0.008,
+      "turnos": 4,
+      "modelo": "claude-haiku-5-5"
+    },
+    {
+      "caso": "02-teste-quebrado",
+      "run": 44054598068,
+      "pr": 6,
+      "desfecho": "barrado",
+      "gates": [
+        "offline"
+      ],
+      "veredito": "ok",
+      "custo_usd": 0.0046,
+      "turnos": 4,
+      "modelo": "claude-haiku-5-5"
+    },
+    {
+      "caso": "03-vulnerabilidade",
+      "run": 44054908491,
+      "pr": 7,
+      "desfecho": "barrado",
+      "gates": [
+        "bandit",
+        "semgrep"
+      ],
+      "veredito": "ok",
+      "custo_usd": 0.0031,
+      "turnos": 3,
+      "modelo": "claude-haiku-5-5"
+    },
+    {
+      "caso": "04-segredo",
+      "run": 44055194704,
+      "pr": 8,
+      "desfecho": "barrado",
+      "gates": [
+        "gitleaks"
+      ],
+      "veredito": "ok",
+      "custo_usd": 0.0026,
+      "turnos": 2,
+      "modelo": "claude-haiku-5-5"
+    },
+    {
+      "caso": "05-regressao-eval",
+      "run": 44055506378,
+      "pr": 9,
+      "desfecho": "barrado",
+      "gates": [
+        "offline"
+      ],
+      "veredito": "ok",
+      "custo_usd": 0.0029,
+      "turnos": 4,
+      "modelo": "claude-haiku-5-5"
+    },
+    {
+      "caso": "06-edicao-dos-gates",
+      "run": 44055809339,
+      "pr": null,
+      "desfecho": "barrado",
+      "gates": [
+        "path-guard"
+      ],
+      "veredito": "ok",
+      "custo_usd": 0.0025,
+      "turnos": 3,
+      "modelo": "claude-haiku-5-5"
+    }
+  ]
+}
