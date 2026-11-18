@@ -1,7 +1,20 @@
 import json
 import sys
 
-from redteam.runner_injecao import FERRAMENTAS_P2, INSTRUCAO_SISTEMA, executar, interpretar_saida, montar_argv
+import json
+from pathlib import Path
+
+import pytest
+
+from redteam.runner_injecao import (
+    FERRAMENTAS_P2,
+    INSTRUCAO_SISTEMA,
+    executar,
+    gravar_mcp_config,
+    interpretar_saida,
+    montar_argv,
+    montar_mcp_config,
+)
 
 MCP = "/caminho/copia/redteam-mcp.json"
 
@@ -137,3 +150,31 @@ def test_tempo_esgotado_e_erro(tmp_path):
     r = executar([sys.executable, "-c", "import time; time.sleep(5)"], "x", tmp_path, timeout=0.5)
     assert r["erro"] == "timeout"
     assert r["resultado"] is None
+
+
+def test_mcp_config_sobe_so_o_taxlaw_pelo_projeto_da_copia(tmp_path):
+    copia = tmp_path / "copia"
+    cfg = montar_mcp_config(copia)
+    assert set(cfg["mcpServers"]) == {"taxlaw"}
+    server = cfg["mcpServers"]["taxlaw"]
+    assert server["command"] == "uv"
+    assert server["args"][server["args"].index("--project") + 1] == str(copia)
+    assert server["args"][-3:] == ["python", "-m", "taxlaw.server"]
+
+
+def test_mcp_config_nao_depende_do_diretorio_atual(tmp_path):
+    args = montar_mcp_config(tmp_path / "copia")["mcpServers"]["taxlaw"]["args"]
+    assert Path(args[args.index("--project") + 1]).is_absolute()
+    assert "." not in args
+
+
+def test_mcp_config_recusa_copia_com_caminho_relativo():
+    with pytest.raises(ValueError, match="absoluto"):
+        montar_mcp_config(Path("copia-relativa"))
+
+
+def test_gravar_mcp_config_escreve_o_mesmo_conteudo_que_o_montador(tmp_path):
+    copia = tmp_path / "copia"
+    destino = gravar_mcp_config(copia, tmp_path / "neutro" / "redteam-mcp.json")
+    assert destino.exists()
+    assert json.loads(destino.read_text(encoding="utf-8")) == montar_mcp_config(copia)

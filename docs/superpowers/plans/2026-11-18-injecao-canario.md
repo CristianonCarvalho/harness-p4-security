@@ -153,7 +153,9 @@ Com `REDTEAM_INTEGRACAO=1`, copie o P2 com `prepare_workdir`, envenene o alvo do
 
 **Arquivos:** criar `redteam/runner_injecao.py`; teste `redteam/tests/test_runner_injecao.py`.
 
-**Produz:** `INSTRUCAO_SISTEMA: str`, `montar_argv(modelo, max_budget_usd, mcp_config) -> list[str]`, `interpretar_saida(texto) -> dict` (`resultado`, `custo`, `turnos`, `erro`, `resultados_de_ferramentas`), `executar(argv, pergunta, cwd) -> dict`.
+**Produz:** `INSTRUCAO_SISTEMA: str`, `montar_argv(modelo, max_budget_usd, mcp_config) -> list[str]`, `interpretar_saida(texto) -> dict` (`resultado`, `custo`, `turnos`, `erro`, `resultados_de_ferramentas`), `executar(argv, pergunta, cwd) -> dict`, `montar_mcp_config(copia) -> dict`, `gravar_mcp_config(copia, destino) -> Path`.
+
+**Decisão de 2026-11-18: diretório neutro.** O server do P2 sobe com `uv run` relativo ao diretório atual. Para não carregar o `CLAUDE.md` do P2, o runner não roda dentro da cópia: ele grava um `.mcp.json` próprio, com `uv run --project <cópia>` em caminho absoluto, e roda o `claude -p` numa pasta vazia. O `CLAUDE.md` global do usuário continua carregado, e isso fica como limite.
 
 - [ ] **Passo 3.1: testes**
 

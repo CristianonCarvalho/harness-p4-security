@@ -86,6 +86,32 @@ def interpretar_saida(texto: str) -> dict:
     )
 
 
+def montar_mcp_config(copia: Path) -> dict:
+    """Config MCP só com o server taxlaw, lançado pelo projeto da cópia em caminho absoluto.
+
+    Assim o `claude -p` pode rodar de um diretório neutro, sem o CLAUDE.md do P2.
+    """
+    copia = Path(copia)
+    if not copia.is_absolute():
+        raise ValueError("a cópia do P2 precisa de caminho absoluto")
+    return {
+        "mcpServers": {
+            "taxlaw": {
+                "type": "stdio",
+                "command": "uv",
+                "args": ["run", "--quiet", "--project", str(copia), "python", "-m", "taxlaw.server"],
+            }
+        }
+    }
+
+
+def gravar_mcp_config(copia: Path, destino: Path) -> Path:
+    destino = Path(destino)
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(json.dumps(montar_mcp_config(copia), ensure_ascii=False, indent=2), encoding="utf-8")
+    return destino
+
+
 def executar(argv: list[str], pergunta: str, cwd: Path, timeout: float = TIMEOUT_S) -> dict:
     try:
         proc = subprocess.run(
