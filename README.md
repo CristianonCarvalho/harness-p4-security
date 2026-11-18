@@ -87,7 +87,7 @@ flowchart TB
 | Parte | Estado |
 |---|---|
 | **Spec A:** pipeline "agente abre PR, gates decidem" | **concluída** em 2026-11-17: o lote de 6 casos rodou sem nenhum vazamento |
-| **Spec B:** red team de prompt injection no P2 | **não iniciada** |
+| **Spec B:** red team de prompt injection no P2 | **base neutra implementada**: integridade do P2, cópia de trabalho, esquema do catálogo, estatística (Wilson) e varredura de CPF e CNPJ no CI, com 31 testes. Os laboratórios de injeção e HTTP, o catálogo de ataques e as sondas **não foram iniciados**: estão fora do plano aprovado |
 | Texto "o que deu errado" | [rascunho](docs/o-que-deu-errado.md), a ser reescrito por quem fez o projeto |
 | Previsão do Cristiano (bloco B) | em branco; só a previsão do Claude foi registrada |
 
@@ -163,3 +163,6 @@ uv run python -m pipeline.lote --out /tmp/lote-resultados.json
 | [`docs/lote-resultados.json`](docs/lote-resultados.json) | resultados brutos |
 | [`docs/o-que-deu-errado.md`](docs/o-que-deu-errado.md) | o que deu errado (rascunho) |
 | [`docs/roadmap/p4-no-roadmap.md`](docs/roadmap/p4-no-roadmap.md) | o que o roadmap diz sobre o P4 |
+| [`docs/superpowers/specs/2026-11-18-red-team-p2-design.md`](docs/superpowers/specs/2026-11-18-red-team-p2-design.md) | spec B: red team no P2 |
+| [`docs/superpowers/plans/2026-11-18-red-team-p2.md`](docs/superpowers/plans/2026-11-18-red-team-p2.md) | plano da base neutra da spec B (escopo reduzido) |
+| [`docs/redteam/diagramas.md`](docs/redteam/diagramas.md) | diagramas do que já está implementado na spec B |
