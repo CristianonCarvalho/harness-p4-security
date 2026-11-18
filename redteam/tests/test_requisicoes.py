@@ -66,3 +66,11 @@ def test_corpo_repetido_e_aceito_ate_o_limite():
 def test_corpo_repetido_fora_do_limite_e_recusado(corpo):
     with pytest.raises(ValueError):
         validar_requisicoes({"requisicoes": [{**REQ, "corpo": corpo}]})
+
+
+def test_criterio_de_guarda_aceita_so_os_valores_conhecidos():
+    assert validar_criterio({"esperado": {"guarda": "bloqueou"}}) == {"guarda": "bloqueou"}
+    with pytest.raises(ValueError):
+        validar_criterio({"esperado": {"guarda": "talvez"}})
+    with pytest.raises(ValueError):
+        validar_criterio({"esperado": {"guarda": "bloqueou", "status": [401]}})

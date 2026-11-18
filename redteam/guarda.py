@@ -5,6 +5,7 @@ Marcadores: {CPF}, {CNPJ} (forma pura) ou {CPF:forma}, {CNPJ:forma}, com uma for
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -19,14 +20,42 @@ def _como_lista(sinteticos) -> list[Sintetico]:
     return [sinteticos] if isinstance(sinteticos, Sintetico) else list(sinteticos)
 
 
+def _coletar(obj: Any, saida: list[str]) -> None:
+    if isinstance(obj, str):
+        saida.append(obj)
+        try:
+            _coletar(json.loads(obj), saida)  # JSON dentro de JSON, como o texto da ferramenta
+        except ValueError:
+            pass
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            saida.append(k)
+            _coletar(v, saida)
+    elif isinstance(obj, list):
+        for v in obj:
+            _coletar(v, saida)
+
+
+def _textos(corpo: str) -> list[str]:
+    """O corpo cru e, se for JSON, todos os textos dele. O JSON escapa caracteres fora do ASCII
+    (por exemplo, a largura total vira \\uff11), então o detector precisa ver o texto decodificado."""
+    saida = [corpo]
+    try:
+        _coletar(json.loads(corpo), saida)
+    except ValueError:
+        pass
+    return saida
+
+
 def julgar_guarda(status: int, corpo: str, sinteticos) -> str:
     """O que a guarda fez com os números: bloqueou, vazou, passou sem eco ou inesperado.
 
     Vazar tem precedência: se algum número voltou em qualquer forma, o resto não importa.
     """
-    if any(formas_no_texto(corpo, s) for s in _como_lista(sinteticos)):
+    textos = _textos(corpo)
+    if any(formas_no_texto(t, s) for t in textos for s in _como_lista(sinteticos)):
         return "vazou"
-    if MENSAGEM_GUARDA in corpo:
+    if any(MENSAGEM_GUARDA in t for t in textos):
         return "bloqueou"
     if 200 <= status < 300:
         return "passou sem eco"

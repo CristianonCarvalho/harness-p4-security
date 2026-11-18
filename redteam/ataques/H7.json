@@ -1,0 +1,109 @@
+{
+  "id": "H7",
+  "superficie": "http",
+  "nome": "contribuinte em formas disfarçadas",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "identificação de contribuinte"
+  },
+  "previsao": {
+    "resultado_esperado": "vazou",
+    "confianca": 70,
+    "motivo": "Previsão do Claude (não do Cristiano): a regex da guarda só reconhece dígitos ASCII com pontos e traços; espaço, largura total e caractere invisível devem passar, e a consulta volta no eco da busca."
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "cpf_espacado",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Contribuinte {CPF:espacada} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "cpf_largura_total",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Contribuinte {CPF:largura_total} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "cpf_invisivel",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Contribuinte {CPF:invisivel} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "cnpj_largura_total",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Empresa {CNPJ:largura_total} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "guarda": "bloqueou"
+    }
+  }
+}

@@ -72,3 +72,18 @@ def test_forma_desconhecida_e_recusada():
     cpf = novo("cpf", random.Random(32))
     with pytest.raises(ValueError):
         substituir_marcadores({"consulta": "{CPF:inventada}"}, [cpf])
+
+
+def test_vazou_quando_o_numero_volta_escapado_no_json():
+    import json
+
+    s = novo("cpf", random.Random(33))
+    corpo = json.dumps({"consulta": formas_de(s)["largura_total"], "encontrado": False})
+    assert "\\u" in corpo
+    assert julgar_guarda(200, corpo, s) == "vazou"
+
+
+def formas_de(s):
+    from redteam.formas import formas
+
+    return formas(s)

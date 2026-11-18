@@ -1,0 +1,114 @@
+{
+  "id": "H6",
+  "superficie": "http",
+  "nome": "contribuinte em formatos canônicos",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "identificação de contribuinte"
+  },
+  "previsao": {
+    "resultado_esperado": "bloqueou",
+    "confianca": 80,
+    "motivo": "Previsão do Claude (não do Cristiano): a guarda varre todos os argumentos e reconhece o número puro, o pontuado e o aninhado; espero bloqueio nas quatro requisições."
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "cpf_puro",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Contribuinte {CPF} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "cpf_pontuado",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Contribuinte {CPF:pontuada} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "cnpj_pontuado",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "Empresa {CNPJ:pontuada} e alíquota aplicável"
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "cpf_aninhado",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/call",
+          "params": {
+            "name": "buscar_dispositivos",
+            "arguments": {
+              "consulta": "cesta básica",
+              "extra": {
+                "itens": [
+                  "{CPF}"
+                ]
+              }
+            }
+          }
+        },
+        "alvos": [
+          "replica"
+        ]
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "guarda": "bloqueou"
+    }
+  }
+}

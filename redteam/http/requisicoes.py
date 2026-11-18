@@ -54,8 +54,15 @@ def validar_requisicoes(entrada: dict) -> list[dict]:
     return reqs
 
 
+GUARDA_VALORES = {"bloqueou", "passou sem eco", "vazou", "inesperado"}
+
+
 def validar_criterio(criterio: dict) -> dict:
     esperado = criterio.get("esperado")
+    if isinstance(esperado, dict) and "guarda" in esperado:
+        if set(esperado) != {"guarda"} or esperado["guarda"] not in GUARDA_VALORES:
+            raise ValueError(f"criterio de guarda inválido: {esperado!r}")
+        return esperado
     if not isinstance(esperado, dict) or not esperado or not set(esperado) <= CHAVES_ESPERADO:
         raise ValueError(f"criterio.esperado inválido: {esperado!r}")
     return esperado
