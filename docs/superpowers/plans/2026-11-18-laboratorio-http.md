@@ -9,7 +9,7 @@
 
 **Tech Stack:** Python 3.13, `uv`, `pytest`, `httpx`, `git`.
 
-**Spec:** [`docs/superpowers/specs/2026-11-18-red-team-p2-design.md`](../specs/2026-11-18-red-team-p2-design.md), seção "Laboratório HTTP". Este plano implementa só essa seção, e o caminho 1 escolhido por você.
+**Spec:** [`docs/superpowers/specs/2026-11-18-red-team-p2-design.md`](../specs/2026-11-18-red-team-p2-design.md), seção "Laboratório HTTP". Este plano implementa só essa seção, no caminho 1 escolhido por você.
 
 ## Escopo deste plano
 
@@ -23,12 +23,12 @@
 
 - **Só o próprio servidor.** O alvo é a réplica local e a VPS `https://mcpreforma.cristianocarvalho.cloud`. Nenhum outro host.
 - **Sem negação de serviço.** O ataque de token errado usa **um valor fixo de teste**, nunca tentativas em massa. A VPS recebe no máximo **30 requisições, 2 por segundo**, e para na primeira resposta 429 ou 5xx.
-- **Autorização antes da VPS.** Nenhuma requisição sai para a VPS sem você ver a lista exata de requisições e devolver a assinatura dela (um hash).
-- **Token só por variável de ambiente** (`TAXLAW_HTTP_TOKEN` na réplica). Nunca na linha de comando, nunca em arquivo, nunca na saída. Os registros trocam o token por `<TOKEN>`.
+- **Autorização antes da VPS.** Nenhuma requisição sai para a VPS sem você ver a lista exata e devolver a assinatura dela (um hash).
+- **Token só por variável de ambiente** (`TAXLAW_HTTP_TOKEN` na réplica, `TAXLAW_VPS_TOKEN` na VPS). Nunca na linha de comando, nunca em arquivo, nunca na saída. Os registros trocam o token por `<TOKEN>`.
 - **O P2 não muda.** Antes e depois da medição, `git status` do P2 deve ser o mesmo da linha de base (`M meister.config.yaml` e `?? meister.config.yaml.bak`).
 - **Previsão antes da medição.** Você escreve a previsão de cada ataque e faz commit antes de a medição rodar.
-- **Testes padrão offline.** Os testes que sobem a réplica ficam marcados como `integracao` e só rodam com `REDTEAM_INTEGRACAO=1`. Nenhum teste padrão sai para a rede.
-- Mensagens em português; identificadores de código em inglês; commit com `Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>`.
+- **Testes padrão offline.** Os testes que sobem a réplica ficam marcados com `skipif` e só rodam com `REDTEAM_INTEGRACAO=1`. Nenhum teste padrão sai para a rede.
+- Mensagens em português; identificadores de código em inglês; commits com `Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>`.
 
 ## Fatos do P2 que o plano usa
 
@@ -38,14 +38,14 @@ Lidos de `src/taxlaw/http.py` e de `src/taxlaw/server.py` no checkout do P2:
 - o caminho do protocolo é `/mcp`, e o transporte é stateless com resposta JSON;
 - sem token válido, a resposta é HTTP 401 com corpo JSON-RPC `{"error": {"code": -32001, "message": "nao_autorizado"}}`;
 - o `Host` padrão aceito é `127.0.0.1:<porta>` e `localhost:<porta>`;
-- o corpo tem limite de 64 KB (`max_request_body_size`).
+- o corpo tem limite de 64 KB.
 
 **Os códigos esperados de H3, H4, H5, H8 e H9 são hipóteses**, escritas na previsão antes da medição. A medição é que confirma ou refuta cada uma.
 
 ## Revisão: entradas que a spec não cobre
 
 1. Porta ocupada ou réplica que não sobe: erro com a causa, sem o token. *(Tarefa 4)*
-2. Token aparecer em argumento de linha de comando, no log ou no registro: teste de argv e de redação. *(Tarefas 3, 4 e 6)*
+2. Token aparecer em argumento de linha de comando, no log ou no registro: teste de argv e de redação. *(Tarefas 3, 4, 6 e 7)*
 3. Corpo de resposta enorme: truncado no registro. *(Tarefa 3)*
 4. VPS responder 429 ou 5xx no meio da rodada: a rodada para e registra o motivo. *(Tarefa 7)*
 5. Lista da VPS diferente da lista autorizada: recusada antes de qualquer envio. *(Tarefa 7)*
@@ -54,13 +54,13 @@ Lidos de `src/taxlaw/http.py` e de `src/taxlaw/server.py` no checkout do P2:
 
 ## Tarefa 1: Verificador de veredito
 
-**Para estudar:** o veredito compara o que o P2 **disse** com o que o P2 **afirma** fazer. Três resultados: **defendido** (a expectativa bate), **furou** (era para bloquear e a requisição passou) e **inesperado** (qualquer outra coisa, inclusive erro de servidor). O verificador não decide se algo é grave: ele só compara com a expectativa escrita antes.
+**Para estudar:** o veredito compara o que o P2 **respondeu** com a expectativa escrita **antes**. Três resultados: **defendido** (a expectativa bate), **furou** (era para bloquear e a requisição passou) e **inesperado** (qualquer outra coisa, inclusive erro de servidor). O verificador não decide se algo é grave: ele só compara com o que foi escrito antes.
 
 **Arquivos:** criar `redteam/http/__init__.py` (vazio) e `redteam/http/veredito.py`; teste `redteam/tests/test_veredito.py`.
 
 **Produz:** `@dataclass(frozen=True) Resposta(status: int, corpo: str)` e `julgar(esperado: dict, observado: Resposta) -> str`, que devolve `"defendido"`, `"furou"` ou `"inesperado"`. As chaves de `esperado` são `status` (lista de inteiros), `erro_mcp` (mensagem do erro JSON-RPC) e `sem_stacktrace` (booleano).
 
-- [ ] **Passo 1.1: testes que pinam o comportamento**
+- [ ] **Passo 1.1: testes**
 
 `redteam/tests/test_veredito.py`:
 
@@ -155,7 +155,7 @@ git commit -m "Veredito de requisicoes HTTP: defendido, furou ou inesperado" -m 
 
 ## Tarefa 2: Validação das requisições e carregador do ataque HTTP
 
-**Para estudar:** o catálogo é dado, e o esquema comum da base neutra só valida os campos comuns. Esta tarefa valida o bloco `entrada` e o bloco `criterio` **de um ataque HTTP**. Autenticação não entra no cabeçalho direto: o campo `autenticacao` escolhe entre `correta`, `ausente` e `errada`, para o token nunca ser escrito no arquivo do catálogo.
+**Para estudar:** o catálogo é dado, e o esquema comum da base neutra só valida os campos comuns. Esta tarefa valida o bloco `entrada` e o bloco `criterio` de um ataque HTTP. A autenticação não entra como cabeçalho escrito no arquivo: o campo `autenticacao` escolhe entre `correta`, `ausente` e `errada`, e assim o token nunca vai para o catálogo.
 
 **Arquivos:** criar `redteam/http/requisicoes.py`; teste `redteam/tests/test_requisicoes.py`.
 
@@ -409,12 +409,12 @@ git commit -m "Cliente HTTP com redacao do token" -m "Co-Authored-By: Claude Hai
 
 ## Tarefa 4: Réplica local do server do P2
 
-**Para estudar:** a réplica é o mesmo `taxlaw.http` do P2, rodando numa **cópia** (`prepare_workdir`), nunca no original. O token é gerado na hora e entra só pela variável de ambiente. A porta é livre, escolhida pelo sistema. Quando o bloco `with` termina, o processo é encerrado. Os testes padrão checam a montagem do comando e do ambiente, sem subir nada; o teste de subida real fica marcado como `integracao`.
+**Para estudar:** a réplica é o mesmo `taxlaw.http` do P2, rodando numa **cópia** (`prepare_workdir`), nunca no original. O token é gerado na hora e entra só pela variável de ambiente. A porta é escolhida pelo sistema. Quando o bloco `with` termina, o processo é encerrado. Os testes padrão checam a montagem do comando e do ambiente, sem subir nada; o teste de subida real só roda com `REDTEAM_INTEGRACAO=1`.
 
 **Arquivos:** criar `redteam/http/replica.py`; testes `redteam/tests/test_replica.py`.
 
-**Consome:** `prepare_workdir` (base neutra).
-**Produz:** `porta_livre() -> int`, `montar_comando(workdir, porta) -> list[str]`, `montar_ambiente(token) -> dict`, `class ReplicaNaoSobe(Exception)`, e o gerenciador de contexto `replica(workdir, token, *, timeout_s=90.0)` que devolve a URL base.
+**Consome:** `prepare_workdir` (base neutra, `redteam/workdir.py`).
+**Produz:** `TOKEN_ENV = "TAXLAW_HTTP_TOKEN"`, `porta_livre() -> int`, `montar_comando(workdir, porta) -> list[str]`, `montar_ambiente(token) -> dict`, `class ReplicaNaoSobe(Exception)`, e o gerenciador de contexto `replica(workdir, token, *, timeout_s=90.0)`, que devolve a URL base.
 
 - [ ] **Passo 4.1: testes**
 
@@ -457,17 +457,14 @@ def test_replica_sobe_responde_401_sem_token_e_nao_grava_o_token(tmp_path):
     import httpx
 
     from redteam.http.replica import replica
-    from redteam.injecao_workdir_alias import P2  # noqa: F401  (ver passo 4.3)
+    from redteam.workdir import prepare_workdir
 
     dest = tmp_path / "copia"
-    from redteam.workdir import prepare_workdir
-    prepare_workdir(P2, dest)
+    prepare_workdir(Path(os.environ["REDTEAM_P2_DIR"]), dest)
     with replica(dest, TOKEN) as base:
         assert httpx.post(base + "/mcp", json={}).status_code == 401
     assert TOKEN not in (dest / "replica.log").read_text(encoding="utf-8")
 ```
-
-O teste de integração usa um alias para o caminho do P2. Crie o alias no passo 4.2, para o caminho não ficar escrito em dois lugares.
 
 - [ ] **Passo 4.2: implementar**
 
@@ -537,14 +534,6 @@ def replica(workdir: Path, token: str, *, timeout_s: float = 90.0):
                 proc.kill()
 ```
 
-`redteam/injecao_workdir_alias.py` **não** deve existir: o teste de integração recebe o caminho do P2 pela variável `REDTEAM_P2_DIR`. Troque a linha de `P2` do teste por:
-
-```python
-P2 = Path(os.environ["REDTEAM_P2_DIR"])
-```
-
-e a linha `from redteam.injecao_workdir_alias import P2` por nada. Assim o caminho fica fora do código.
-
 - [ ] **Passo 4.3: rodar os testes padrão e, com o P2 disponível, o de integração**
 
 ```bash
@@ -553,7 +542,7 @@ REDTEAM_INTEGRACAO=1 REDTEAM_P2_DIR=/Users/cristianocarvalho/Documents/harness/p
 git -C /Users/cristianocarvalho/Documents/harness/projeto02 status --porcelain
 ```
 
-Esperado: os testes padrão passam; o de integração passa e o `git status` do P2 mostra as **mesmas duas linhas** da linha de base.
+Esperado: os testes padrão passam; o de integração passa; e o `git status` do P2 mostra as **mesmas duas linhas** da linha de base.
 
 ```bash
 uv run pytest -q && uv run pytest -q
@@ -565,11 +554,9 @@ git commit -m "Replica local do server HTTP do P2 numa copia" -m "Co-Authored-By
 
 ## Tarefa 5: Catálogo HTTP em dados
 
-**Para estudar:** cada ataque de protocolo é um arquivo JSON. A tabela abaixo diz o que cada um testa e qual defesa a spec espera. Os códigos são **hipóteses**: o arquivo nasce com a expectativa da spec, e a previsão sua (Tarefa 6) é o que fica registrado como "o que eu acho que vai acontecer".
+**Para estudar:** cada ataque de protocolo é um arquivo JSON. A tabela abaixo diz o que cada um testa e qual defesa a spec espera. Os códigos são **hipóteses**: o arquivo nasce com a expectativa da spec, e a sua previsão (Tarefa 6) fica registrada como "o que eu acho que vai acontecer".
 
 **Arquivos:** criar `redteam/ataques/H1.json`, `H2.json`, `H3.json`, `H4.json`, `H5.json`, `H8.json`, `H9.json`; teste `redteam/tests/test_catalogo_http.py`.
-
-**Como cada um se parece** (o exemplo completo é o H1):
 
 | ID | Requisição | Alvos | Defesa esperada (hipótese) |
 |---|---|---|---|
@@ -600,7 +587,7 @@ H1, completo:
 }
 ```
 
-O campo `previsao` nasce com `confianca` 0 e `motivo` vazio. **A medição recusa rodar enquanto o motivo estiver vazio**, e isso é de propósito: a previsão é sua, e ela precisa existir antes.
+O campo `previsao` nasce com `confianca` 0 e `motivo` vazio. **A medição recusa rodar enquanto o motivo estiver vazio**, de propósito: a previsão é sua, e ela precisa existir antes.
 
 - [ ] **Passo 5.1: teste que valida o catálogo inteiro**
 
@@ -643,12 +630,12 @@ git commit -m "Catalogo HTTP: sete ataques de protocolo como dados" -m "Co-Autho
 
 ## Tarefa 6: Medição na réplica (com a sua previsão antes)
 
-**Para estudar:** a medição roda cada requisição **três vezes** na réplica e registra o veredito de cada repetição. Se as três repetições não concordam, o ataque é marcado como **instável**: o resultado daquele comportamento não é confiável, e a ficha dirá isso. O registro é gravado com o token trocado por `<TOKEN>`.
+**Para estudar:** a medição roda cada requisição **três vezes** na réplica e registra o veredito de cada repetição. Se as três repetições não concordam, o comportamento é **instável**: a ficha dirá isso, e o resultado não é confiável. O registro sai com o token trocado por `<TOKEN>`.
 
-**Arquivos:** criar `redteam/http/medicao.py`; teste `redteam/tests/test_medicao.py`; saída em `docs/redteam/medicao-replica.json`.
+**Arquivos:** criar `redteam/http/medicao.py`, `redteam/http/__main__.py`; teste `redteam/tests/test_medicao.py`; saída em `docs/redteam/medicao-replica.json`.
 
 **Consome:** `carregar_ataque_http` (Tarefa 2), `enviar` e `redigir` (Tarefa 3), `julgar` (Tarefa 1), `replica` (Tarefa 4).
-**Produz:** `rodar_ataque(attack, reqs, esperado, base_url, token, *, cliente, repeticoes=3) -> list[dict]`, `exigir_previsao(attack) -> None`, `gravar(registros, destino, token) -> None`.
+**Produz:** `exigir_previsao(attack) -> None`, `rodar_ataque(attack, reqs, esperado, base_url, token, *, cliente, repeticoes=3) -> list[dict]`, `gravar(registros, destino, token) -> None`, e a execução `python -m redteam.http`.
 
 - [ ] **Passo 6.1: PORTÃO, a sua previsão**
 
@@ -665,7 +652,6 @@ import httpx
 import pytest
 
 from redteam.esquema import Attack
-from redteam.http.cliente import TOKEN_ERRADO
 from redteam.http.medicao import exigir_previsao, gravar, rodar_ataque
 
 TOKEN = "u" * 40
@@ -702,7 +688,7 @@ def test_registro_gravado_nao_contem_o_token(tmp_path):
     assert json.loads(texto)[0]["status"] == 401
 ```
 
-- [ ] **Passo 6.3: implementar**
+- [ ] **Passo 6.3: implementar a medição**
 
 `redteam/http/medicao.py`:
 
@@ -748,19 +734,61 @@ def gravar(registros: list[dict], destino: Path, token: str) -> None:
     Path(destino).write_text(redigir(texto, token), encoding="utf-8")
 ```
 
-- [ ] **Passo 6.4: rodar a medição na réplica e commitar**
+- [ ] **Passo 6.4: implementar a execução `python -m redteam.http`**
 
-Crie um pequeno script de execução em `redteam/http/__main__.py` que, para cada um dos sete arquivos: gera o token com `secrets.token_urlsafe(32)`, sobe `replica(copia, token)` numa cópia nova (`prepare_workdir`), roda `rodar_ataque` com `httpx.Client` padrão, e chama `gravar` em `docs/redteam/medicao-replica.json`. A cópia é apagada no fim. Depois:
+`redteam/http/__main__.py`:
+
+```python
+"""Executa a medição na réplica: `REDTEAM_P2_DIR=<caminho do P2> python -m redteam.http`."""
+
+from __future__ import annotations
+
+import os
+import secrets
+import tempfile
+from pathlib import Path
+
+import httpx
+
+from redteam.esquema import CATALOGO_DIR
+from redteam.http.medicao import gravar, rodar_ataque
+from redteam.http.replica import replica
+from redteam.http.requisicoes import carregar_ataque_http
+from redteam.workdir import prepare_workdir
+
+IDS = ["H1", "H2", "H3", "H4", "H5", "H8", "H9"]
+SAIDA = Path("docs/redteam/medicao-replica.json")
+
+
+def main() -> int:
+    p2 = Path(os.environ["REDTEAM_P2_DIR"])
+    token = secrets.token_urlsafe(32)
+    registros = []
+    with tempfile.TemporaryDirectory() as tmp:
+        copia = prepare_workdir(p2, Path(tmp) / "p2")
+        with replica(copia, token) as base, httpx.Client() as cliente:
+            for i in IDS:
+                attack, reqs, esperado = carregar_ataque_http(Path(CATALOGO_DIR) / f"{i}.json")
+                registros += rodar_ataque(attack, reqs, esperado, base, token, cliente=cliente)
+    gravar(registros, SAIDA, token)
+    print(f"{len(registros)} registros em {SAIDA}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+- [ ] **Passo 6.5: rodar a medição na réplica e commitar**
 
 ```bash
+uv run pytest -q
 REDTEAM_P2_DIR=/Users/cristianocarvalho/Documents/harness/projeto02 uv run python -m redteam.http
 git -C /Users/cristianocarvalho/Documents/harness/projeto02 status --porcelain
 uv run python -m redteam.varredura
 ```
 
-Esperado: o `git status` do P2 mostra as **mesmas duas linhas** da linha de base, e a varredura não acha nada no JSON gravado.
-
-Confira o resultado com a sua previsão. Depois commite:
+Esperado: o `git status` do P2 mostra as **mesmas duas linhas** da linha de base, e a varredura não acha nada no JSON gravado. Confira o resultado com a sua previsão, e depois commite:
 
 ```bash
 uv run pytest -q && uv run pytest -q
@@ -772,11 +800,14 @@ git commit -m "Medicao dos ataques HTTP na replica, tres repeticoes" -m "Co-Auth
 
 ## Tarefa 7: Gate da VPS (com autorização sua)
 
-**Para estudar:** a VPS é do dono, mas é um serviço público, e a rodada precisa ser pequena e reversível. O gate faz três coisas: monta a lista **exata** de requisições, calcula a sua assinatura (um hash), e só envia se você devolver essa mesma assinatura. Durante o envio, o limite de 30 requisições e 2 por segundo é aplicado no código, e a rodada para na primeira resposta 429 ou 5xx.
+**Para estudar:** a VPS é do dono, mas é um serviço público, e a rodada precisa ser pequena e reversível. O gate faz três coisas: monta a lista **exata** das requisições que sairiam, calcula a assinatura dela (um hash), e só envia se você devolver essa mesma assinatura. Durante o envio, o limite de 30 requisições e 2 por segundo é aplicado no código, e a rodada para na primeira resposta 429 ou 5xx.
+
+A lista mostra a requisição completa, porque é isso que você autoriza. O token nunca aparece nela: ele não está no catálogo, e entra só pela variável de ambiente.
 
 **Arquivos:** criar `redteam/http/vps.py`; teste `redteam/tests/test_vps.py`.
 
-**Produz:** `listar(catalogo) -> list[dict]` (só metadados: ataque, requisição, método, caminho, autenticação, tamanho do corpo; **nunca** o token nem o corpo), `assinatura(lista) -> str`, `executar(lista, base_url, token, *, cliente, confirmacao, max_requisicoes=30, intervalo_s=0.5, sleep=time.sleep) -> list[dict]`.
+**Consome:** `enviar` (Tarefa 3), `carregar_ataque_http` (Tarefa 2), `CATALOGO_DIR` (base neutra).
+**Produz:** `listar(catalogo: list[tuple[str, list[dict]]]) -> list[dict]`, `assinatura(lista) -> str`, `executar(lista, base_url, token, *, cliente, confirmacao, max_requisicoes=30, intervalo_s=0.5, sleep=time.sleep) -> list[dict]`, e a linha de comando `python -m redteam.http.vps --listar` ou `--executar --confirmacao <assinatura>`.
 
 - [ ] **Passo 7.1: testes**
 
@@ -791,22 +822,23 @@ from redteam.http.vps import assinatura, executar, listar
 TOKEN = "v" * 40
 
 
+def _req(nome, alvos=("vps",)):
+    return {"ataque": "H1", "nome": nome, "metodo": "POST", "caminho": "/mcp",
+            "autenticacao": "ausente", "cabecalhos": {}, "corpo": {"a": 1}, "alvos": list(alvos)}
+
+
 def _lista(n):
-    return [{"ataque": "H1", "requisicao": f"r{i}", "metodo": "POST", "caminho": "/mcp",
-             "autenticacao": "ausente", "tamanho_corpo_bytes": 10} for i in range(n)]
+    return [_req(f"r{i}") for i in range(n)]
 
 
-def _cliente(status):
-    return httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(status, text="{}")))
+def _cliente(status, texto="{}"):
+    return httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(status, text=texto)))
 
 
-def test_lista_e_so_metadados():
-    lista = listar([{"id": "H1", "nome": "x", "nucleo": True, "rotulos": {}, "previsao": {},
-                     "entrada": {"requisicoes": [{"nome": "r", "metodo": "POST", "caminho": "/mcp",
-                                                  "autenticacao": "ausente", "cabecalhos": {},
-                                                  "corpo": {"a": 1}, "alvos": ["vps"]}]},
-                     "criterio": {"esperado": {"status": [401]}}}])
-    assert TOKEN not in str(lista) and "corpo" not in lista[0]
+def test_listar_so_inclui_requisicoes_da_vps():
+    catalogo = [("H1", [_req("para_vps"), _req("so_replica", alvos=("replica",))])]
+    lista = listar(catalogo)
+    assert [r["nome"] for r in lista] == ["para_vps"]
 
 
 def test_mais_de_30_requisicoes_sao_recusadas():
@@ -817,7 +849,8 @@ def test_mais_de_30_requisicoes_sao_recusadas():
 
 def test_assinatura_errada_nao_envia_nada():
     chamadas = []
-    cliente = httpx.Client(transport=httpx.MockTransport(lambda r: chamadas.append(r) or httpx.Response(401)))
+    cliente = httpx.Client(transport=httpx.MockTransport(
+        lambda r: chamadas.append(r) or httpx.Response(401)))
     with pytest.raises(ValueError):
         executar(_lista(2), "https://teste.invalid", TOKEN, cliente=cliente,
                  confirmacao="errada", sleep=lambda s: None)
@@ -840,8 +873,9 @@ def test_respeita_o_intervalo_entre_requisicoes():
     assert pausas == [0.5, 0.5]
 
 
-def test_resultado_nao_contem_o_token():
-    resultados = executar(_lista(1), "https://teste.invalid", TOKEN, cliente=_cliente(401),
+def test_resultado_nao_contem_o_token_mesmo_se_o_servidor_ecoar_o_token():
+    resultados = executar(_lista(1), "https://teste.invalid", TOKEN,
+                          cliente=_cliente(401, texto=f"ecoou {TOKEN}"),
                           confirmacao=assinatura(_lista(1)), sleep=lambda s: None)
     assert TOKEN not in str(resultados)
 ```
@@ -855,33 +889,37 @@ def test_resultado_nao_contem_o_token():
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
+import os
 import time
+from pathlib import Path
 
 import httpx
 
-from redteam.http.cliente import enviar, redigir
+from redteam.esquema import CATALOGO_DIR
+from redteam.http.cliente import enviar
+from redteam.http.requisicoes import carregar_ataque_http
 
 MAX_REQUISICOES = 30
 LIMITE_TAXA = 429
+IDS_HTTP = ["H1", "H2", "H3", "H4", "H5", "H8", "H9"]
+SAIDA = Path("docs/redteam/medicao-vps.json")
 
 
-def listar(catalogo: list[dict]) -> list[dict]:
-    """Só metadados: o que vai sair, sem o token e sem o corpo."""
+def listar(catalogo: list[tuple[str, list[dict]]]) -> list[dict]:
+    """As requisições que sairiam para a VPS. O token não está no catálogo, então não aparece aqui."""
     lista = []
-    for ataque in catalogo:
-        for req in ataque["entrada"]["requisicoes"]:
+    for ataque_id, reqs in catalogo:
+        for req in reqs:
             if "vps" in req["alvos"]:
-                corpo = json.dumps(req.get("corpo"), ensure_ascii=False) if req.get("corpo") is not None else ""
-                lista.append({"ataque": ataque["id"], "requisicao": req["nome"], "metodo": req["metodo"],
-                              "caminho": req["caminho"], "autenticacao": req.get("autenticacao", "correta"),
-                              "tamanho_corpo_bytes": len(corpo.encode("utf-8"))})
+                lista.append({"ataque": ataque_id, **req})
     return lista
 
 
 def assinatura(lista: list[dict]) -> str:
-    return hashlib.sha256(json.dumps(lista, sort_keys=True).encode("utf-8")).hexdigest()
+    return hashlib.sha256(json.dumps(lista, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
 def executar(lista: list[dict], base_url: str, token: str, *, cliente: httpx.Client, confirmacao: str,
@@ -892,42 +930,55 @@ def executar(lista: list[dict], base_url: str, token: str, *, cliente: httpx.Cli
     if confirmacao != assinatura(lista):
         raise ValueError("a assinatura não bate com a lista; nada foi enviado")
     resultados = []
-    for i, meta in enumerate(lista):
+    for i, req in enumerate(lista):
         if i:
             sleep(intervalo_s)
-        req = meta_para_requisicao(meta)
         observado = enviar(base_url, token, req, cliente=cliente)
-        registro = {**meta, "status": observado.status, "trecho": observado.corpo[:200]}
+        registro = {"ataque": req["ataque"], "requisicao": req["nome"], "status": observado.status,
+                    "trecho": observado.corpo[:200]}
         if observado.status == LIMITE_TAXA or 500 <= observado.status < 600:
             registro["parada"] = "limite de taxa" if observado.status == LIMITE_TAXA else "erro do servidor"
             resultados.append(registro)
             break
         resultados.append(registro)
-    return [{**r, "trecho": redigir(r["trecho"], token)} for r in resultados]
+    return resultados
 
 
-def meta_para_requisicao(meta: dict) -> dict:
-    """Reconstrói a requisição a partir do catálogo. Implementada na Tarefa 7.3."""
-    raise NotImplementedError
+def _catalogo_vps() -> list[tuple[str, list[dict]]]:
+    catalogo = []
+    for i in IDS_HTTP:
+        attack, reqs, _ = carregar_ataque_http(Path(CATALOGO_DIR) / f"{i}.json")
+        catalogo.append((attack.id, reqs))
+    return catalogo
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Gate da VPS: liste e depois execute com a assinatura.")
+    ap.add_argument("--listar", action="store_true")
+    ap.add_argument("--executar", action="store_true")
+    ap.add_argument("--confirmacao", default="")
+    args = ap.parse_args(argv)
+    lista = listar(_catalogo_vps())
+    if args.listar:
+        print(json.dumps(lista, ensure_ascii=False, indent=2))
+        print(f"assinatura: {assinatura(lista)}")
+        return 0
+    if args.executar:
+        base = os.environ["TAXLAW_VPS_BASE"]
+        token = os.environ["TAXLAW_VPS_TOKEN"]
+        with httpx.Client() as cliente:
+            resultados = executar(lista, base, token, cliente=cliente, confirmacao=args.confirmacao)
+        SAIDA.write_text(json.dumps(resultados, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"{len(resultados)} registros em {SAIDA}")
+        return 0
+    ap.error("use --listar ou --executar")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 ```
 
-- [ ] **Passo 7.3: ligar o metadado à requisição completa**
-
-`executar` precisa do corpo e dos cabeçalhos da requisição, que `listar` não guarda de propósito. Troque a função `meta_para_requisicao` por uma que receba o catálogo, e passe o catálogo a `executar`. Os testes do passo 7.1 continuam válidos; ajuste apenas a chamada para `executar(lista, base_url, token, cliente=..., confirmacao=..., catalogo=CATALOGO)`, e implemente:
-
-```python
-def meta_para_requisicao(meta: dict, catalogo: list[dict]) -> dict:
-    for ataque in catalogo:
-        if ataque["id"] == meta["ataque"]:
-            for req in ataque["entrada"]["requisicoes"]:
-                if req["nome"] == meta["requisicao"]:
-                    return req
-    raise ValueError(f"requisição não encontrada: {meta['ataque']}/{meta['requisicao']}")
-```
-
-O teste de lista não muda. Os testes de execução passam a receber um catálogo mínimo com uma requisição por ataque.
-
-- [ ] **Passo 7.4: rodar e commitar**
+- [ ] **Passo 7.3: rodar e commitar**
 
 ```bash
 uv run pytest redteam/tests/test_vps.py -q
@@ -940,7 +991,7 @@ git commit -m "Gate da VPS: lista exata, assinatura e limites" -m "Co-Authored-B
 
 ## Tarefa 8: Rodada na VPS — PORTÃO
 
-**Para estudar:** o gate da Tarefa 7 só envia se a assinatura bater. Aqui você é quem autoriza: vê a lista exata e devolve a assinatura. Se a lista mudar depois, a assinatura muda, e a rodada não sai.
+**Para estudar:** o gate da Tarefa 7 só envia se a assinatura bater. Aqui você é quem autoriza: vê a lista exata e devolve a assinatura. Se a lista mudar depois, a assinatura muda, e a rodada não sai. Pelo catálogo atual, a rodada tem três requisições (H1, H2 e H5), bem abaixo do limite de 30.
 
 - [ ] **Passo 8.1: gerar a lista e a assinatura, sem enviar nada**
 
@@ -948,7 +999,7 @@ git commit -m "Gate da VPS: lista exata, assinatura e limites" -m "Co-Authored-B
 uv run python -m redteam.http.vps --listar
 ```
 
-Esperado: a lista das requisições que sairiam para a VPS (ataque, requisição, método, caminho, autenticação, tamanho do corpo) e uma assinatura de 64 caracteres. Nenhum envio acontece nesse passo.
+Esperado: a lista das requisições que sairiam para a VPS e uma assinatura de 64 caracteres. Nenhum envio acontece nesse passo.
 
 - [ ] **Passo 8.2: você autoriza**
 
@@ -960,7 +1011,7 @@ Revise a lista. Se estiver de acordo, responda com a assinatura. Sem a assinatur
 TAXLAW_VPS_BASE=https://mcpreforma.cristianocarvalho.cloud TAXLAW_VPS_TOKEN="$(pbpaste)" uv run python -m redteam.http.vps --executar --confirmacao ASSINATURA_AQUI
 ```
 
-Troque `ASSINATURA_AQUI` pela assinatura que você autorizou. O token vem da área de transferência, sem aparecer na tela nem no histórico do shell. Depois confira que o P2 não mudou, e grave o resultado em `docs/redteam/medicao-vps.json`, com o token redigido.
+Troque `ASSINATURA_AQUI` pela assinatura que você autorizou. O token vem da área de transferência, sem aparecer na tela nem no histórico do shell. Depois confira que o P2 não mudou.
 
 - [ ] **Passo 8.4: commit**
 
@@ -980,7 +1031,7 @@ git commit -m "Medicao dos ataques HTTP na VPS, com autorizacao" -m "Co-Authored
 
 - [ ] **Passo 9.1: escrever o relatório**
 
-Para cada um dos sete ataques, uma ficha com: id e nome, requisição (sem o token), sua previsão (valor e confiança), resultado da réplica nas três repetições, resultado da VPS (se a rodada alcançou aquele ataque), veredito, estabilidade, recomendação de mitigação, e risco residual. No fim, um quadro de previsão contra resultado, os limites (sete ataques, um modelo de defesa, o P2 de hoje) e "o que deu errado".
+Para cada um dos sete ataques, uma ficha com: id e nome, requisição (sem o token), sua previsão (valor e confiança), resultado da réplica nas três repetições, resultado da VPS (se a rodada alcançou aquele ataque), veredito, estabilidade, recomendação de mitigação e risco residual. No fim, um quadro de previsão contra resultado, os limites (sete ataques, uma versão do P2, uma data) e "o que deu errado".
 
 - [ ] **Passo 9.2: confirmações finais**
 
@@ -1001,12 +1052,12 @@ git commit -m "Relatorio do laboratorio HTTP" -m "Co-Authored-By: Claude Haiku 5
 
 ## Autoavaliação do plano
 
-**Cobertura:** o verificador (Tarefa 1), a validação (Tarefa 2), o cliente com redação (Tarefa 3), a réplica (Tarefa 4), o catálogo de sete ataques (Tarefa 5), a medição com previsão e três repetições (Tarefa 6), o gate da VPS com autorização e limites (Tarefas 7 e 8) e o relatório (Tarefa 9).
+**Cobertura:** verificador (Tarefa 1), validação (Tarefa 2), cliente com redação (Tarefa 3), réplica (Tarefa 4), catálogo de sete ataques (Tarefa 5), medição com previsão e três repetições (Tarefa 6), gate da VPS com autorização e limites (Tarefas 7 e 8), relatório (Tarefa 9).
 
 **Fora deste plano, de propósito:** H6 e H7 (CPF e CNPJ, dependem do gerador de números sintéticos), a injeção pelo texto da norma e as sondas do ambiente.
 
-**Pontos que a execução confirma:** os códigos esperados de H3, H4, H5, H8 e H9 (hipóteses, verificadas pela medição); o cabeçalho `Accept` necessário para o transporte MCP (confirmado na primeira execução da réplica); e a porta e o comportamento do server quando sobe pela primeira vez.
+**Pontos que a execução confirma:** os códigos esperados de H3, H4, H5, H8 e H9 (hipóteses, verificadas pela medição); o cabeçalho `Accept` necessário para o transporte MCP (confirmado na primeira execução da réplica); e o comportamento do server na primeira subida.
 
 ## Escolha de execução
 
-Este plano tem nove tarefas, com uma dependência clara entre elas (verificador e cliente antes da réplica, réplica antes da medição, medição antes da VPS). Recomendo a **execução nativa**, como na base neutra. O risco principal é a rodada na VPS, que tem um portão seu antes de qualquer envio.
+Este plano tem nove tarefas, com dependências claras (verificador e cliente antes da réplica, réplica antes da medição, medição antes da VPS). Recomendo a **execução nativa**, como na base neutra. O risco principal é a rodada na VPS, que tem um portão seu antes de qualquer envio.
