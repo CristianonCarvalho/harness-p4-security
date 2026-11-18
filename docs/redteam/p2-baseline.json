@@ -1,0 +1,6 @@
+{
+  "corpus_sha256": "c269388fb2bd53b0a326d2b8b516c592478e3a41d8f2c3bceb0bf51caaf41e3a",
+  "git_head": "1a02e552ec52c86ac5709ba573654a5c2047ac58",
+  "git_status": " M meister.config.yaml\n?? meister.config.yaml.bak\n",
+  "observacao": "linha de base antes do red team; o git status já não estava limpo"
+}
