@@ -93,6 +93,7 @@ uv run python -m pipeline.lote --out /tmp/lote-resultados.json
 | [`docs/superpowers/plans/2026-11-16-pipeline-agente-pr-gates.md`](docs/superpowers/plans/2026-11-16-pipeline-agente-pr-gates.md) | plano de implementação, em 15 tarefas explicadas |
 | [`docs/previsao-lote.md`](docs/previsao-lote.md) | previsão escrita antes do lote, e o resultado |
 | [`docs/relatorio-lote.md`](docs/relatorio-lote.md) | relatório do lote |
+| [`docs/diagramas.html`](docs/diagramas.html) | diagramas explicados de todos os testes, varreduras e rotinas (abra no navegador; os diagramas Mermaid dependem de um renderizador) |
 | [`docs/lote-resultados.json`](docs/lote-resultados.json) | resultados brutos |
 | [`docs/o-que-deu-errado.md`](docs/o-que-deu-errado.md) | o que deu errado (rascunho) |
 | [`docs/roadmap/p4-no-roadmap.md`](docs/roadmap/p4-no-roadmap.md) | o que o roadmap diz sobre o P4 |
