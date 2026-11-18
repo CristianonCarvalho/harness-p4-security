@@ -46,7 +46,12 @@ def executar(lista: list[dict], base_url: str, token: str, *, cliente: httpx.Cli
     for i, req in enumerate(lista):
         if i:
             sleep(intervalo_s)
-        observado = enviar(base_url, token, req, cliente=cliente)
+        try:
+            observado = enviar(base_url, token, req, cliente=cliente)
+        except Exception as exc:  # noqa: BLE001 - registrar e parar; a mensagem não entra, pode conter o token
+            resultados.append({"ataque": req["ataque"], "requisicao": req["nome"], "status": None,
+                               "parada": f"erro de execução: {type(exc).__name__}"})
+            break
         registro = {"ataque": req["ataque"], "requisicao": req["nome"], "status": observado.status,
                     "trecho": observado.corpo[:200]}
         if observado.status == LIMITE_TAXA or 500 <= observado.status < 600:

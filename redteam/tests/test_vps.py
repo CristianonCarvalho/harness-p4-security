@@ -62,3 +62,20 @@ def test_resultado_nao_contem_o_token_mesmo_se_o_servidor_ecoar_o_token():
                           cliente=_cliente(401, texto=f"ecoou {TOKEN}"),
                           confirmacao=assinatura(_lista(1)), sleep=lambda s: None)
     assert TOKEN not in str(resultados)
+
+
+def test_erro_inesperado_no_meio_da_rodada_fica_registrado_sem_o_token():
+    chamadas = []
+
+    def responder(request):
+        chamadas.append(request)
+        if len(chamadas) == 1:
+            return httpx.Response(401, text="{}")
+        raise ValueError(f"falha com o valor {TOKEN}")
+
+    cliente = httpx.Client(transport=httpx.MockTransport(responder))
+    resultados = executar(_lista(3), "https://teste.invalid", TOKEN, cliente=cliente,
+                          confirmacao=assinatura(_lista(3)), sleep=lambda s: None)
+    assert [r["status"] for r in resultados] == [401, None]
+    assert resultados[-1]["parada"] == "erro de execução: ValueError"
+    assert TOKEN not in str(resultados)
