@@ -1,0 +1,194 @@
+[
+  {
+    "ataque": "H1",
+    "requisicao": "sem_autenticacao",
+    "repeticao": 1,
+    "status": 401,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\": \"2.0\", \"id\": null, \"error\": {\"code\": -32001, \"message\": \"nao_autorizado\"}}"
+  },
+  {
+    "ataque": "H1",
+    "requisicao": "sem_autenticacao",
+    "repeticao": 2,
+    "status": 401,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\": \"2.0\", \"id\": null, \"error\": {\"code\": -32001, \"message\": \"nao_autorizado\"}}"
+  },
+  {
+    "ataque": "H1",
+    "requisicao": "sem_autenticacao",
+    "repeticao": 3,
+    "status": 401,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\": \"2.0\", \"id\": null, \"error\": {\"code\": -32001, \"message\": \"nao_autorizado\"}}"
+  },
+  {
+    "ataque": "H2",
+    "requisicao": "token_errado",
+    "repeticao": 1,
+    "status": 401,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\": \"2.0\", \"id\": null, \"error\": {\"code\": -32001, \"message\": \"nao_autorizado\"}}"
+  },
+  {
+    "ataque": "H2",
+    "requisicao": "token_errado",
+    "repeticao": 2,
+    "status": 401,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\": \"2.0\", \"id\": null, \"error\": {\"code\": -32001, \"message\": \"nao_autorizado\"}}"
+  },
+  {
+    "ataque": "H2",
+    "requisicao": "token_errado",
+    "repeticao": 3,
+    "status": 401,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\": \"2.0\", \"id\": null, \"error\": {\"code\": -32001, \"message\": \"nao_autorizado\"}}"
+  },
+  {
+    "ataque": "H3",
+    "requisicao": "host_estranho",
+    "repeticao": 1,
+    "status": 421,
+    "veredito": "defendido",
+    "trecho": "Invalid Host header"
+  },
+  {
+    "ataque": "H3",
+    "requisicao": "host_estranho",
+    "repeticao": 2,
+    "status": 421,
+    "veredito": "defendido",
+    "trecho": "Invalid Host header"
+  },
+  {
+    "ataque": "H3",
+    "requisicao": "host_estranho",
+    "repeticao": 3,
+    "status": 421,
+    "veredito": "defendido",
+    "trecho": "Invalid Host header"
+  },
+  {
+    "ataque": "H4",
+    "requisicao": "origin_de_navegador",
+    "repeticao": 1,
+    "status": 403,
+    "veredito": "defendido",
+    "trecho": "Invalid Origin header"
+  },
+  {
+    "ataque": "H4",
+    "requisicao": "origin_de_navegador",
+    "repeticao": 2,
+    "status": 403,
+    "veredito": "defendido",
+    "trecho": "Invalid Origin header"
+  },
+  {
+    "ataque": "H4",
+    "requisicao": "origin_de_navegador",
+    "repeticao": 3,
+    "status": 403,
+    "veredito": "defendido",
+    "trecho": "Invalid Origin header"
+  },
+  {
+    "ataque": "H5",
+    "requisicao": "corpo_grande",
+    "repeticao": 1,
+    "status": 413,
+    "veredito": "defendido",
+    "trecho": "Request body too large"
+  },
+  {
+    "ataque": "H5",
+    "requisicao": "corpo_grande",
+    "repeticao": 2,
+    "status": 413,
+    "veredito": "defendido",
+    "trecho": "Request body too large"
+  },
+  {
+    "ataque": "H5",
+    "requisicao": "corpo_grande",
+    "repeticao": 3,
+    "status": 413,
+    "veredito": "defendido",
+    "trecho": "Request body too large"
+  },
+  {
+    "ataque": "H8",
+    "requisicao": "get_mcp",
+    "repeticao": 1,
+    "status": 0,
+    "veredito": "inesperado",
+    "trecho": "timed out"
+  },
+  {
+    "ataque": "H8",
+    "requisicao": "get_mcp",
+    "repeticao": 2,
+    "status": 0,
+    "veredito": "inesperado",
+    "trecho": "timed out"
+  },
+  {
+    "ataque": "H8",
+    "requisicao": "get_mcp",
+    "repeticao": 3,
+    "status": 0,
+    "veredito": "inesperado",
+    "trecho": "timed out"
+  },
+  {
+    "ataque": "H8",
+    "requisicao": "delete_mcp",
+    "repeticao": 1,
+    "status": 405,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Method Not Allowed: Session termination not supported\"}}"
+  },
+  {
+    "ataque": "H8",
+    "requisicao": "delete_mcp",
+    "repeticao": 2,
+    "status": 405,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Method Not Allowed: Session termination not supported\"}}"
+  },
+  {
+    "ataque": "H8",
+    "requisicao": "delete_mcp",
+    "repeticao": 3,
+    "status": 405,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32600,\"message\":\"Method Not Allowed: Session termination not supported\"}}"
+  },
+  {
+    "ataque": "H9",
+    "requisicao": "json_quebrado",
+    "repeticao": 1,
+    "status": 400,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error: key must be a string at line 1 column 3\"}}"
+  },
+  {
+    "ataque": "H9",
+    "requisicao": "json_quebrado",
+    "repeticao": 2,
+    "status": 400,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error: key must be a string at line 1 column 3\"}}"
+  },
+  {
+    "ataque": "H9",
+    "requisicao": "json_quebrado",
+    "repeticao": 3,
+    "status": 400,
+    "veredito": "defendido",
+    "trecho": "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32700,\"message\":\"Parse error: key must be a string at line 1 column 3\"}}"
+  }
+]
