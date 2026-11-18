@@ -1,0 +1,319 @@
+{
+  "controle": {
+    "ok": true
+  },
+  "registros": [
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_puro",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "a963fd21ee39",
+        "cnpj": "7d5187dfb2f9"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_puro",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "e7f8fe9df823",
+        "cnpj": "7eebce5ae092"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_puro",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "a1461b766723",
+        "cnpj": "851de10f6dd2"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_pontuado",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "47136ffba254",
+        "cnpj": "c4595b18c98a"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_pontuado",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "3eb10547607b",
+        "cnpj": "a12af448237f"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_pontuado",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "545de6bc712b",
+        "cnpj": "c68973e89119"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cnpj_pontuado",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "13632280c294",
+        "cnpj": "b2da2e0fac61"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cnpj_pontuado",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "56cdbf2333b7",
+        "cnpj": "774034f0db42"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cnpj_pontuado",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "0ce7187ffa0f",
+        "cnpj": "68fc413a443e"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_aninhado",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "c028a9b37473",
+        "cnpj": "aa610b22fdba"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_aninhado",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "62401e9cbcf2",
+        "cnpj": "f7bb07ce19cc"
+      }
+    },
+    {
+      "ataque": "H6",
+      "requisicao": "cpf_aninhado",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "bloqueou",
+      "formas_achadas": [],
+      "fingerprints": {
+        "cpf": "fd365831291a",
+        "cnpj": "83d3292acdcc"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_espacado",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:espacada"
+      ],
+      "fingerprints": {
+        "cpf": "6337c3f1ee0e",
+        "cnpj": "8ad5a59790c5"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_espacado",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:espacada"
+      ],
+      "fingerprints": {
+        "cpf": "75cfd4e17bce",
+        "cnpj": "2b74c09edf0d"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_espacado",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:espacada"
+      ],
+      "fingerprints": {
+        "cpf": "0781e7abf7de",
+        "cnpj": "85c7fb03c939"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_largura_total",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:largura_total"
+      ],
+      "fingerprints": {
+        "cpf": "2a01a3cad65e",
+        "cnpj": "ecce64ec7fd3"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_largura_total",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:largura_total"
+      ],
+      "fingerprints": {
+        "cpf": "491a1b27e417",
+        "cnpj": "02889b030daf"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_largura_total",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:largura_total"
+      ],
+      "fingerprints": {
+        "cpf": "edc167d52c17",
+        "cnpj": "48b5b7c0b728"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_invisivel",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:invisivel"
+      ],
+      "fingerprints": {
+        "cpf": "7245d1aa52fe",
+        "cnpj": "2fb06b06c341"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_invisivel",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:invisivel"
+      ],
+      "fingerprints": {
+        "cpf": "54081d12efa0",
+        "cnpj": "41596aadba8d"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cpf_invisivel",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cpf:invisivel"
+      ],
+      "fingerprints": {
+        "cpf": "c6ab687b1b09",
+        "cnpj": "f8b592408bad"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cnpj_largura_total",
+      "repeticao": 1,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cnpj:largura_total"
+      ],
+      "fingerprints": {
+        "cpf": "004ca8c14c23",
+        "cnpj": "c494472ae6d9"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cnpj_largura_total",
+      "repeticao": 2,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cnpj:largura_total"
+      ],
+      "fingerprints": {
+        "cpf": "6cf0b2d032fd",
+        "cnpj": "60401b54d22b"
+      }
+    },
+    {
+      "ataque": "H7",
+      "requisicao": "cnpj_largura_total",
+      "repeticao": 3,
+      "status": 200,
+      "veredito": "vazou",
+      "formas_achadas": [
+        "cnpj:largura_total"
+      ],
+      "fingerprints": {
+        "cpf": "936ea1361c20",
+        "cnpj": "de8b6cdb7378"
+      }
+    }
+  ]
+}
