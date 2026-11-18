@@ -196,7 +196,7 @@ flowchart TD
 **O que prova.** Números válidos são achados, em formato puro e formatado; DV errado e número colado não são; arquivos binários são ignorados; a lista de exceções funciona; e o `main` sai com 1 ou 0 (sete testes). Na execução sobre o P4, nenhum achado.
 
 **O que não prova.**
-- Roda **à mão**. Não há gancho de commit nem CI, e a spec pede varredura automática.
+- Roda **no CI** a cada push e PR (workflow `varredura`), e também à mão. Não é um gancho de commit local: quem commita sem enviar só é barrado no envio, e não antes do commit.
 - CNPJ alfanumérico em minúsculas não é coberto.
 - Um número de 11 dígitos com DV válido por acaso vira achado; a solução é a lista de exceções pelo fingerprint.
 
@@ -210,7 +210,7 @@ flowchart TD
 | `workdir.py` | 2 | preparar a cópia do P2 | o laboratório que roda dentro dela |
 | `esquema.py` | 10 | validar a parte comum de um ataque | o conteúdo dos ataques |
 | `estatistica.py` | 8 | calcular taxas com intervalo | o relatório que as usaria |
-| `varredura.py` | 7 | achar CPF e CNPJ válidos nos arquivos | rodar automaticamente no commit |
+| `varredura.py` | 7 | achar CPF e CNPJ válidos nos arquivos; roda no CI a cada push e PR | gancho local, antes do commit |
 | **Total** | **31** | | |
 
 Plano: [`docs/superpowers/plans/2026-11-18-red-team-p2.md`](../superpowers/plans/2026-11-18-red-team-p2.md) · Spec: [`docs/superpowers/specs/2026-11-18-red-team-p2-design.md`](../superpowers/specs/2026-11-18-red-team-p2-design.md)
