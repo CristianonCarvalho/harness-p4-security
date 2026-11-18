@@ -1,0 +1,2 @@
+# Um fingerprint por linha, com um comentário dizendo o que o número é.
+# Só para falsos positivos: identificadores que passam no DV por acaso.
