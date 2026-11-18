@@ -51,3 +51,18 @@ def test_carrega_ataque_http_completo(tmp_path):
     caminho.write_text(json.dumps(ataque), encoding="utf-8")
     attack, reqs, esperado = carregar_ataque_http(caminho)
     assert attack.id == "H1" and reqs == [REQ] and esperado == {"status": [401]}
+
+
+def test_corpo_repetido_e_aceito_ate_o_limite():
+    req = {**REQ, "corpo": {"texto_repetido": {"caractere": "a", "vezes": 70000}}}
+    assert validar_requisicoes({"requisicoes": [req]}) == [req]
+
+
+@pytest.mark.parametrize("corpo", [
+    {"texto_repetido": {"caractere": "ab", "vezes": 10}},
+    {"texto_repetido": {"caractere": "a", "vezes": 0}},
+    {"texto_repetido": {"caractere": "a", "vezes": 300000}},
+])
+def test_corpo_repetido_fora_do_limite_e_recusado(corpo):
+    with pytest.raises(ValueError):
+        validar_requisicoes({"requisicoes": [{**REQ, "corpo": corpo}]})

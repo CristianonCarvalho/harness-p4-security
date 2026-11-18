@@ -1,0 +1,45 @@
+{
+  "id": "H5",
+  "superficie": "http",
+  "nome": "corpo acima de 64 KB",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "limite de corpo"
+  },
+  "previsao": {
+    "resultado_esperado": "defendido",
+    "confianca": 0,
+    "motivo": ""
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "corpo_grande",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "alvos": [
+          "replica",
+          "vps"
+        ],
+        "corpo": {
+          "texto_repetido": {
+            "caractere": "a",
+            "vezes": 70000
+          }
+        }
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "status": [
+        413
+      ],
+      "sem_stacktrace": true
+    }
+  }
+}

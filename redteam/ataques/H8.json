@@ -1,0 +1,49 @@
+{
+  "id": "H8",
+  "superficie": "http",
+  "nome": "método não previsto em /mcp",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "método"
+  },
+  "previsao": {
+    "resultado_esperado": "defendido",
+    "confianca": 0,
+    "motivo": ""
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "get_mcp",
+        "metodo": "GET",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "alvos": [
+          "replica"
+        ]
+      },
+      {
+        "nome": "delete_mcp",
+        "metodo": "DELETE",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "alvos": [
+          "replica"
+        ]
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "status": [
+        404,
+        405
+      ],
+      "sem_stacktrace": true
+    }
+  }
+}

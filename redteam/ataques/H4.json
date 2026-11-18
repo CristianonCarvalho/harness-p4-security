@@ -1,0 +1,45 @@
+{
+  "id": "H4",
+  "superficie": "http",
+  "nome": "cabeçalho Origin de navegador",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "transporte"
+  },
+  "previsao": {
+    "resultado_esperado": "defendido",
+    "confianca": 0,
+    "motivo": ""
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "origin_de_navegador",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {
+          "Origin": "https://exemplo.invalid"
+        },
+        "alvos": [
+          "replica"
+        ],
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/list"
+        }
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "status": [
+        403
+      ],
+      "sem_stacktrace": true
+    }
+  }
+}

@@ -11,6 +11,20 @@ METODOS = {"GET", "POST", "DELETE"}
 ALVOS = {"replica", "vps"}
 AUTENTICACOES = {"correta", "ausente", "errada"}
 CHAVES_ESPERADO = {"status", "erro_mcp", "sem_stacktrace"}
+LIMITE_REPETICAO = 200_000
+
+
+def _validar_corpo(corpo) -> None:
+    """Corpo pode ser JSON, texto ou {"texto_repetido": {"caractere": c, "vezes": n}}, com n limitado."""
+    if not (isinstance(corpo, dict) and "texto_repetido" in corpo):
+        return
+    rep = corpo["texto_repetido"]
+    if not isinstance(rep, dict) or set(rep) != {"caractere", "vezes"}:
+        raise ValueError("texto_repetido precisa de caractere e vezes, e só deles")
+    if not isinstance(rep["caractere"], str) or len(rep["caractere"]) != 1:
+        raise ValueError("texto_repetido.caractere deve ter exatamente um caractere")
+    if isinstance(rep["vezes"], bool) or not isinstance(rep["vezes"], int) or not 1 <= rep["vezes"] <= LIMITE_REPETICAO:
+        raise ValueError(f"texto_repetido.vezes deve estar entre 1 e {LIMITE_REPETICAO}")
 
 
 def validar_requisicoes(entrada: dict) -> list[dict]:
@@ -36,6 +50,7 @@ def validar_requisicoes(entrada: dict) -> list[dict]:
         alvos = r.get("alvos")
         if not isinstance(alvos, list) or not alvos or not set(alvos) <= ALVOS:
             raise ValueError(f"alvos inválidos: {alvos!r}")
+        _validar_corpo(r.get("corpo"))
     return reqs
 
 

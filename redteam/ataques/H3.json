@@ -1,0 +1,45 @@
+{
+  "id": "H3",
+  "superficie": "http",
+  "nome": "Host fora da lista permitida",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "transporte"
+  },
+  "previsao": {
+    "resultado_esperado": "defendido",
+    "confianca": 0,
+    "motivo": ""
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "host_estranho",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {
+          "Host": "exemplo.invalid"
+        },
+        "alvos": [
+          "replica"
+        ],
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/list"
+        }
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "status": [
+        421
+      ],
+      "sem_stacktrace": true
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "id": "H2",
+  "superficie": "http",
+  "nome": "token com valor errado",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "autenticação"
+  },
+  "previsao": {
+    "resultado_esperado": "defendido",
+    "confianca": 0,
+    "motivo": ""
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "token_errado",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "errada",
+        "cabecalhos": {},
+        "alvos": [
+          "replica",
+          "vps"
+        ],
+        "corpo": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "tools/list"
+        }
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "status": [
+        401
+      ],
+      "erro_mcp": "nao_autorizado",
+      "sem_stacktrace": true
+    }
+  }
+}

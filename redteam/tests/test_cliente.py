@@ -35,3 +35,7 @@ def test_enviar_devolve_resposta_sem_o_token_e_trunca_o_corpo():
         r = enviar("http://teste.invalid", TOKEN, REQ, cliente=cliente)
     assert r.status == 401
     assert TOKEN not in r.corpo and len(r.corpo) <= 4000
+
+
+def test_corpo_repetido_gera_o_texto_pedido():
+    assert montar_corpo({"texto_repetido": {"caractere": "a", "vezes": 5}}) == b"aaaaa"

@@ -27,6 +27,9 @@ def montar_corpo(corpo) -> bytes | None:
         return None
     if isinstance(corpo, str):
         return corpo.encode("utf-8")
+    if isinstance(corpo, dict) and "texto_repetido" in corpo:
+        rep = corpo["texto_repetido"]
+        return (rep["caractere"] * rep["vezes"]).encode("utf-8")
     return json.dumps(corpo, ensure_ascii=False).encode("utf-8")
 
 

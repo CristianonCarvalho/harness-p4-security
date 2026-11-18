@@ -1,0 +1,40 @@
+{
+  "id": "H9",
+  "superficie": "http",
+  "nome": "JSON malformado",
+  "nucleo": true,
+  "rotulos": {
+    "owasp_llm": [],
+    "indirect_type": null,
+    "classe": "validação de entrada"
+  },
+  "previsao": {
+    "resultado_esperado": "defendido",
+    "confianca": 0,
+    "motivo": ""
+  },
+  "entrada": {
+    "requisicoes": [
+      {
+        "nome": "json_quebrado",
+        "metodo": "POST",
+        "caminho": "/mcp",
+        "autenticacao": "correta",
+        "cabecalhos": {},
+        "alvos": [
+          "replica"
+        ],
+        "corpo": "{ isto nao e json"
+      }
+    ]
+  },
+  "criterio": {
+    "esperado": {
+      "status": [
+        400,
+        200
+      ],
+      "sem_stacktrace": true
+    }
+  }
+}
