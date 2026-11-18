@@ -88,6 +88,7 @@ def test_stream_com_resultado_e_resultado_de_ferramenta():
         "turnos": 3,
         "erro": None,
         "resultados_de_ferramentas": ['{"trecho": "Nota"}'],
+        "limite_status": None,
     }
 
 
@@ -192,3 +193,29 @@ def test_executar_grava_a_saida_bruta_quando_pedido(tmp_path):
     r = executar([sys.executable, str(script)], "x", tmp_path, bruto=bruto)
     assert r["resultado"] == "ok"
     assert '"result": "ok"' in bruto.read_text(encoding="utf-8")
+
+
+def _evento_de_limite(status: str) -> dict:
+    return {"type": "rate_limit_event", "rate_limit_info": {"status": status, "rateLimitType": "five_hour"}}
+
+
+def test_status_do_limite_de_uso_e_capturado():
+    eventos = [
+        _evento_de_limite("allowed"),
+        {"type": "result", "is_error": False, "result": "ok", "total_cost_usd": 0.0, "num_turns": 1},
+    ]
+    assert interpretar_saida(_stream(eventos))["limite_status"] == "allowed"
+
+
+def test_ultimo_status_do_limite_vence():
+    eventos = [
+        _evento_de_limite("allowed"),
+        _evento_de_limite("rejected"),
+        {"type": "result", "is_error": True, "result": "", "total_cost_usd": 0.0, "num_turns": 1},
+    ]
+    assert interpretar_saida(_stream(eventos))["limite_status"] == "rejected"
+
+
+def test_sem_evento_de_limite_o_status_e_none():
+    eventos = [{"type": "result", "is_error": False, "result": "ok", "total_cost_usd": 0.0, "num_turns": 1}]
+    assert interpretar_saida(_stream(eventos))["limite_status"] is None

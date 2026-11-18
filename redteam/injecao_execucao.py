@@ -66,4 +66,5 @@ def executar_ataque(
         "turnos": r["turnos"],
         "corpus_sha256": corpus_sha,
         "resposta_trecho": (r["resultado"] or "")[:TRECHO_MAX],
+        "limite_status": r.get("limite_status"),
     }

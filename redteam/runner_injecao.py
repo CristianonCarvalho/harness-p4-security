@@ -59,8 +59,17 @@ def _resultados_de_ferramentas(evento: dict) -> list[str]:
 
 
 def _registro(**campos) -> dict:
-    base = {"resultado": None, "custo": None, "turnos": None, "erro": None, "resultados_de_ferramentas": []}
+    base = {"resultado": None, "custo": None, "turnos": None, "erro": None,
+            "resultados_de_ferramentas": [], "limite_status": None}
     return {**base, **campos}
+
+
+def _ultimo_limite(eventos: list[dict]) -> str | None:
+    status = None
+    for e in eventos:
+        if e.get("type") == "rate_limit_event":
+            status = e.get("rate_limit_info", {}).get("status", status)
+    return status
 
 
 def interpretar_saida(texto: str) -> dict:
@@ -72,9 +81,10 @@ def interpretar_saida(texto: str) -> dict:
             eventos.append(json.loads(linha))
         except ValueError:
             return _registro(erro="saida_invalida")
+    limite = _ultimo_limite(eventos)
     finais = [e for e in eventos if e.get("type") == "result"]
     if not finais or "result" not in finais[-1]:
-        return _registro(erro="sem_resultado")
+        return _registro(erro="sem_resultado", limite_status=limite)
     final = finais[-1]
     ferramentas = [r for e in eventos if e.get("type") == "user" for r in _resultados_de_ferramentas(e)]
     return _registro(
@@ -83,6 +93,7 @@ def interpretar_saida(texto: str) -> dict:
         turnos=final.get("num_turns"),
         erro="is_error" if final.get("is_error") else None,
         resultados_de_ferramentas=ferramentas,
+        limite_status=limite,
     )
 
 

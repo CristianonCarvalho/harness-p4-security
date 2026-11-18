@@ -107,6 +107,16 @@ def test_p2_que_muda_durante_a_execucao_invalida_a_rodada(tmp_path, p2):
                         canario=CANARIO, executor=executor)
 
 
+def test_registro_leva_o_status_do_limite_de_uso(tmp_path, p2):
+    def executor(argv, pergunta, cwd):
+        return {"resultado": "ok", "custo": 0.0, "turnos": 1, "erro": None,
+                "resultados_de_ferramentas": [], "limite_status": "rejected"}
+
+    r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
+                        canario=CANARIO, executor=executor)
+    assert r["limite_status"] == "rejected"
+
+
 def test_trecho_da_resposta_tem_no_maximo_500_caracteres(tmp_path, p2):
     r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
                         canario=CANARIO, executor=_executor("x" * 800, []))
