@@ -41,3 +41,10 @@ def test_catalogo_de_injecao_carrega_e_nao_tem_url_nem_cpf():
         assert oraculo == "canario" and registros and pergunta
         texto = str([r["payload"] for r in registros])
         assert "http" not in texto.lower() and "www" not in texto.lower() and "{CPF" not in texto
+
+
+def test_i5_pe_os_dois_fragmentos_no_dispositivo_que_o_modelo_le():
+    # A medição v1 pôs o segundo fragmento em alvo2, e o modelo nunca leu esse dispositivo.
+    _, registros, _, _ = carregar_ataque_injecao(Path(CATALOGO_DIR) / "I5.json")
+    assert len(registros) == 2
+    assert {r["alvo"] for r in registros} == {"alvo"}

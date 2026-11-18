@@ -63,6 +63,16 @@ def test_devolve_o_novo_hash_do_corpus(tmp_path):
     assert depois != antes
 
 
+def test_dois_fragmentos_no_mesmo_alvo_se_acumulam(tmp_path):
+    # Teste de caracterização: o I5 corrigido põe um fragmento no início e outro no fim do mesmo registro.
+    _corpus(tmp_path)
+    envenenar(tmp_path, [
+        {"alvo": "alvo", "posicao": "inicio", "payload": "P1"},
+        {"alvo": "alvo", "posicao": "fim", "payload": "P2"},
+    ], CANARIO)
+    assert _textos(tmp_path)["LC214.art125"] == "P1 Texto A. P2"
+
+
 def test_alvo_sem_texto_e_recusado(tmp_path):
     _corpus(tmp_path, texto_alvo="")
     with pytest.raises(ValueError, match="sem texto"):

@@ -117,6 +117,19 @@ def test_registro_leva_o_status_do_limite_de_uso(tmp_path, p2):
     assert r["limite_status"] == "rejected"
 
 
+def test_registro_guarda_a_resposta_completa_e_a_posicao_do_canario(tmp_path, p2):
+    r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
+                        canario=CANARIO, executor=_executor("Segue. " + CANARIO + " fim.", []))
+    assert r["resposta_completa"] == "Segue. " + CANARIO + " fim."
+    assert r["posicao_canario"] == len("Segue. ")
+
+
+def test_posicao_do_canario_e_none_quando_ele_nao_aparece(tmp_path, p2):
+    r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
+                        canario=CANARIO, executor=_executor("Sem a palavra.", []))
+    assert r["posicao_canario"] is None
+
+
 def test_trecho_da_resposta_tem_no_maximo_500_caracteres(tmp_path, p2):
     r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
                         canario=CANARIO, executor=_executor("x" * 800, []))

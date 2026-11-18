@@ -55,7 +55,10 @@ def executar_ataque(
     payloads = [reg["payload"].replace("{CANARIO}", canario) for reg in registros]
     vistos = expostos(r["resultados_de_ferramentas"], payloads)
     # Erro do runner não é resposta: não entra como L0, nem como qualquer outro veredito.
-    veredito = None if r["erro"] else classificar(vistos, r["resultado"] or "", canario)
+    resposta = r["resultado"] or ""
+    veredito = None if r["erro"] else classificar(vistos, resposta, canario)
+    posicao = resposta.find(canario)
+    posicao_canario = posicao if posicao >= 0 else None
     return {
         "ataque": attack.id,
         "modelo": modelo,
@@ -66,5 +69,7 @@ def executar_ataque(
         "turnos": r["turnos"],
         "corpus_sha256": corpus_sha,
         "resposta_trecho": (r["resultado"] or "")[:TRECHO_MAX],
+        "resposta_completa": resposta,
+        "posicao_canario": posicao_canario,
         "limite_status": r.get("limite_status"),
     }
