@@ -6,6 +6,82 @@ Um agente (Claude Code, rodando em GitHub Actions) abre pull requests, e **só g
 
 **Critério de concluído do roadmap:** "um PR aberto por agente só chega à branch principal com testes, SAST, evals e revisão humana verdes."
 
+## Diagramas
+
+Os três diagramas abaixo resumem o pipeline. As 13 seções, com 11 diagramas e, em cada um, "como ler", "o que prova" e "o que não prova", estão em [`docs/diagramas.md`](docs/diagramas.md) (o GitHub renderiza os diagramas Mermaid na própria página).
+
+**Quem roda onde:** nenhuma parte do agente roda na sua máquina; o `lote.py` só dispara e observa.
+
+```mermaid
+flowchart TB
+  LOTE["Sua máquina<br/>lote.py dispara o workflow<br/>e classifica o resultado"]
+  subgraph R["Runner do GitHub, efêmero"]
+    A1["Carregar caso"] --> A2["Agente: Claude Code"]
+    A2 --> A3["Orçamento"] --> A4["Guard de caminhos"] --> A5["Token do App<br/>commit, push, PR"]
+  end
+  MOD["Servidores da Anthropic<br/>modelo Haiku 5.5<br/>decide o que editar"]
+  subgraph G["Repositório P3 no GitHub"]
+    PR["Pull request"] --> GATES["Gates por PR"] --> RS["Ruleset da main<br/>mais aprovação humana"] --> MAIN["main"]
+  end
+  LOTE -->|"gh workflow run, case_id"| A1
+  A2 <-->|"turnos: pedido e resposta"| MOD
+  A5 -->|"push e abre o PR"| PR
+  LOTE -.->|"lê os passos do run e os checks do PR"| GATES
+```
+
+**A esteira do agente (`agent.yml`):** cada losango é uma trava escrita em código, fora do modelo. Só um dos quatro finais abre um PR.
+
+```mermaid
+flowchart TD
+  S(["disparo com o ID do caso"]) --> C["Carregar caso<br/>valida o ID e lê o prompt"]
+  C -->|"ID inválido"| E0(["erro: nada roda"])
+  C --> AG["Agente edita arquivos<br/>Read, Edit, Write, Glob, Grep<br/>até 10 turnos, sem Bash"]
+  AG --> OR{"Orçamento<br/>custo e turnos válidos<br/>e dentro do teto?"}
+  OR -->|"não"| X1(["abortado: nenhum PR"])
+  OR -->|"sim"| GU{"Guard de caminhos<br/>tocou em arquivo protegido?"}
+  GU -->|"sim"| X2(["barrado por path-guard<br/>nenhum PR"])
+  GU -->|"não"| CH{"Houve mudança<br/>nos arquivos?"}
+  CH -->|"não"| X3(["recusado: nenhum PR"])
+  CH -->|"sim"| TK["Token do GitHub App<br/>só nasce neste ponto"]
+  TK --> PRN(["commit, push e abre o PR"])
+  classDef stop fill:#fae6e4,stroke:#a8261f,color:#1b2330
+  classDef good fill:#e1f2e8,stroke:#1b6e41,color:#1b2330
+  classDef neutral fill:#e9edf2,stroke:#5f6a7a,color:#1b2330
+  class E0,X1,X2 stop
+  class X3 neutral
+  class PRN good
+```
+
+**Gates por PR e a decisão de merge:** 5 checks obrigatórios mais 1 aprovação humana; check ausente também bloqueia.
+
+```mermaid
+flowchart TB
+  PR(["PR aberto pelo App"]) --> EV1["evento push"]
+  PR --> EV2["evento pull_request"]
+  EV1 --> CI1["ci.yml"] --> OFF1["job offline"]
+  EV2 --> CI2["ci.yml"] --> OFF2["job offline"]
+  EV2 --> GT["gates.yml"]
+  EV2 --> CQ["codeql.yml"]
+  GT --> B["job bandit"]
+  GT --> SG["job semgrep"]
+  GT --> GL["job gitleaks"]
+  CQ --> CJ["job codeql"]
+  OFF1 --> REQ{"5 checks obrigatórios<br/>offline, bandit, semgrep,<br/>gitleaks, codeql"}
+  OFF2 --> REQ
+  B --> REQ
+  SG --> REQ
+  GL --> REQ
+  CJ --> REQ
+  CJ --> CS["resultado de code scanning<br/>alerta alto ou maior bloqueia"]
+  CS --> RSR{"Ruleset da main"}
+  REQ --> RSR
+  RSR --> HUM{"1 aprovação humana?"}
+  HUM -->|"sim"| MERGE(["merge liberado"])
+  HUM -->|"não"| BLK(["merge bloqueado"])
+```
+
+**Todos os diagramas:** [Quem roda onde](docs/diagramas.md#quem-roda-onde) · [A esteira do agente](docs/diagramas.md#a-esteira-do-agente-agentyml) · [Gates por PR e decisão](docs/diagramas.md#gates-por-pr-e-a-decisão-de-merge) · [Testes e evals](docs/diagramas.md#testes-e-evals-o-que-o-job-offline-roda) · [Varredura de segurança](docs/diagramas.md#varredura-de-segurança-quatro-olhares-sobre-o-mesmo-código) · [Guard de caminhos](docs/diagramas.md#guard-de-caminhos) · [Orçamento e carregador](docs/diagramas.md#orçamento-do-agente-e-carregador-de-caso) · [Ruleset da main](docs/diagramas.md#ruleset-da-main-quem-pode-mudar-a-branch) · [Como o lote classifica](docs/diagramas.md#como-o-lote-classifica-o-resultado-de-cada-caso) · [Os 6 casos](docs/diagramas.md#os-6-casos-camada-por-camada) · [Como cada controle foi provado](docs/diagramas.md#como-cada-controle-foi-provado) · [Método de trabalho](docs/diagramas.md#método-de-trabalho-e-rotinas-de-higiene) · [Linha do tempo](docs/diagramas.md#linha-do-tempo-das-15-tarefas)
+
 ## Status
 
 | Parte | Estado |
@@ -34,18 +110,7 @@ Nenhum caso ruim vazou. O agente **não recusou nenhum caso**, inclusive os de a
 
 O código mora no repositório do P3, [`harness-p3-evals`](https://github.com/CristianonCarvalho/harness-p3-evals), porque ele já tinha CI e o `check-repo` de evals. Este repositório guarda a spec, o plano e os relatórios.
 
-```
-disparo manual com o ID de um caso (workflow_dispatch)
-  1. carregar o caso      valida o ID e lê o prompt versionado
-  2. agente               Claude Code edita arquivos, sem Bash e sem rede
-  3. orçamento            reprova se passou do teto de custo ou de turnos
-  4. guard de caminhos    reprova se tocou em arquivo que define os gates
-  5. PR                   só aqui nasce o token de escrita (GitHub App)
-        ↓
-  gates por PR: testes + check-repo, Bandit, Semgrep, gitleaks, CodeQL
-        ↓
-  ruleset da main: 5 checks verdes + 1 aprovação humana, sem push direto
-```
+A sequência completa está nos diagramas da seção [Diagramas](#diagramas): a esteira do agente, depois os gates por PR, depois o ruleset da `main` (5 checks verdes e 1 aprovação humana, sem push direto).
 
 Três camadas, cada uma independente do modelo:
 
