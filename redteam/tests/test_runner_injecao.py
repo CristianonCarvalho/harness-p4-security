@@ -1,0 +1,139 @@
+import json
+import sys
+
+from redteam.runner_injecao import FERRAMENTAS_P2, INSTRUCAO_SISTEMA, executar, interpretar_saida, montar_argv
+
+MCP = "/caminho/copia/redteam-mcp.json"
+
+
+def _argv() -> list[str]:
+    return montar_argv("claude-haiku-5-5", 0.5, MCP)
+
+
+def _valor(argv: list[str], flag: str) -> str:
+    return argv[argv.index(flag) + 1]
+
+
+def _stream(eventos: list[dict]) -> str:
+    return "\n".join(json.dumps(e, ensure_ascii=False) for e in eventos)
+
+
+def test_argv_nao_libera_ferramentas_de_rede():
+    texto = " ".join(_argv())
+    assert "WebFetch" not in texto
+    assert "WebSearch" not in texto
+
+
+def test_argv_libera_so_as_duas_ferramentas_do_p2():
+    assert _valor(_argv(), "--allowedTools").split(",") == list(FERRAMENTAS_P2)
+
+
+def test_argv_usa_so_o_mcp_do_laboratorio():
+    argv = _argv()
+    assert _valor(argv, "--mcp-config") == MCP
+    assert "--strict-mcp-config" in argv
+
+
+def test_argv_tem_modelo_e_teto_de_custo():
+    argv = _argv()
+    assert _valor(argv, "--model") == "claude-haiku-5-5"
+    assert _valor(argv, "--max-budget-usd") == "0.5"
+
+
+def test_argv_pede_stream_json_com_verbose():
+    argv = _argv()
+    assert _valor(argv, "--output-format") == "stream-json"
+    assert "--verbose" in argv
+
+
+def test_argv_nega_permissoes_nao_liberadas_e_nao_guarda_sessao():
+    argv = _argv()
+    assert _valor(argv, "--permission-prompts") == "none"
+    assert "--no-session-persistence" in argv
+
+
+def test_argv_leva_a_instrucao_de_sistema_fixa_que_manda_consultar_o_corpus():
+    assert _valor(_argv(), "--append-system-prompt") == INSTRUCAO_SISTEMA
+    assert "corpus" in INSTRUCAO_SISTEMA.lower()
+
+
+def test_argv_nao_usa_bare_porque_bare_nao_le_a_assinatura():
+    assert "--bare" not in _argv()
+
+
+def test_stream_com_resultado_e_resultado_de_ferramenta():
+    eventos = [
+        {"type": "system", "subtype": "init"},
+        {"type": "user", "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "t1", "content": '{"trecho": "Nota"}'}]}},
+        {"type": "result", "subtype": "success", "is_error": False,
+         "result": "Resposta final", "total_cost_usd": 0.02, "num_turns": 3},
+    ]
+    assert interpretar_saida(_stream(eventos)) == {
+        "resultado": "Resposta final",
+        "custo": 0.02,
+        "turnos": 3,
+        "erro": None,
+        "resultados_de_ferramentas": ['{"trecho": "Nota"}'],
+    }
+
+
+def test_resultado_de_ferramenta_em_blocos_de_texto_vira_uma_string():
+    eventos = [
+        {"type": "user", "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "t1",
+             "content": [{"type": "text", "text": "parte A"}, {"type": "text", "text": "parte B"}]}]}},
+        {"type": "result", "is_error": False, "result": "ok", "total_cost_usd": 0.0, "num_turns": 1},
+    ]
+    assert interpretar_saida(_stream(eventos))["resultados_de_ferramentas"] == ["parte A\nparte B"]
+
+
+def test_saida_que_nao_e_json_e_erro():
+    r = interpretar_saida("isto não é json\n")
+    assert r["erro"] == "saida_invalida"
+    assert r["resultado"] is None
+
+
+def test_sem_linha_de_resultado_e_erro():
+    r = interpretar_saida(_stream([{"type": "system", "subtype": "init"}]))
+    assert r["erro"] == "sem_resultado"
+    assert r["resultado"] is None
+
+
+def test_linha_de_resultado_sem_campo_result_e_erro():
+    r = interpretar_saida(_stream([{"type": "result", "is_error": False, "total_cost_usd": 0.0, "num_turns": 1}]))
+    assert r["erro"] == "sem_resultado"
+
+
+def test_is_error_fica_registrado_e_o_resultado_continua_visivel():
+    eventos = [{"type": "result", "subtype": "error_max_budget_usd", "is_error": True,
+                "result": "", "total_cost_usd": 0.5, "num_turns": 1}]
+    r = interpretar_saida(_stream(eventos))
+    assert r["erro"] == "is_error"
+    assert r["resultado"] == ""
+
+
+def test_executar_entrega_a_pergunta_pela_entrada_e_le_a_saida(tmp_path):
+    script = tmp_path / "falso.py"
+    script.write_text(
+        "import json, sys\n"
+        "pergunta = sys.stdin.read()\n"
+        "print(json.dumps({'type': 'result', 'is_error': False, 'result': 'eco: ' + pergunta,"
+        " 'total_cost_usd': 0.0, 'num_turns': 1}))\n",
+        encoding="utf-8",
+    )
+    r = executar([sys.executable, str(script)], "Qual é a alíquota?", tmp_path)
+    assert r["resultado"] == "eco: Qual é a alíquota?"
+    assert r["erro"] is None
+
+
+def test_codigo_de_saida_diferente_de_zero_e_erro(tmp_path):
+    r = executar([sys.executable, "-c", "import sys; sys.exit(3)"], "x", tmp_path)
+    assert r["erro"] == "codigo_3"
+    assert r["resultado"] is None
+
+
+def test_tempo_esgotado_e_erro(tmp_path):
+    r = executar([sys.executable, "-c", "import time; time.sleep(5)"], "x", tmp_path, timeout=0.5)
+    assert r["erro"] == "timeout"
+    assert r["resultado"] is None
