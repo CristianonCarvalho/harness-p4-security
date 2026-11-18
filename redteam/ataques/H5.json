@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 70,
+    "motivo": "Previsão do Claude (não do Cristiano): o limite de 64 KB do SDK deve responder 413."
   },
   "entrada": {
     "requisicoes": [

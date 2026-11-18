@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 60,
+    "motivo": "Previsão do Claude (não do Cristiano): o server é stateless com resposta JSON; GET e DELETE em /mcp devem ser recusados com 405, e 404 também é aceito pela expectativa."
   },
   "entrada": {
     "requisicoes": [

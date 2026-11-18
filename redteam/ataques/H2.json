@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 95,
+    "motivo": "Previsão do Claude (não do Cristiano): a comparação do token falha e cai no mesmo 401 de H1."
   },
   "entrada": {
     "requisicoes": [

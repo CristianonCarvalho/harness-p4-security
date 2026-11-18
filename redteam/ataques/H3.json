@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 55,
+    "motivo": "Previsão do Claude (não do Cristiano): o SDK confere o Host (proteção contra DNS rebinding) e deve responder 421. Não tenho certeza da versão instalada."
   },
   "entrada": {
     "requisicoes": [

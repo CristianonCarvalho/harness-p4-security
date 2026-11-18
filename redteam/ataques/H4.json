@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 50,
+    "motivo": "Previsão do Claude (não do Cristiano): a lista de origens permitidas está vazia, então a Origin deve ser recusada com 403. Confiança baixa: não verifiquei o código do SDK."
   },
   "entrada": {
     "requisicoes": [

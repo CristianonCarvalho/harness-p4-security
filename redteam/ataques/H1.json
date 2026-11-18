@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 95,
+    "motivo": "Previsão do Claude (não do Cristiano): o middleware de token responde 401 com a mensagem nao_autorizado antes de o SDK ver a requisição."
   },
   "entrada": {
     "requisicoes": [

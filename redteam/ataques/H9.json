@@ -10,8 +10,8 @@
   },
   "previsao": {
     "resultado_esperado": "defendido",
-    "confianca": 0,
-    "motivo": ""
+    "confianca": 65,
+    "motivo": "Previsão do Claude (não do Cristiano): JSON quebrado deve virar erro de parse JSON-RPC, com 400 ou 200, e sem traceback."
   },
   "entrada": {
     "requisicoes": [
