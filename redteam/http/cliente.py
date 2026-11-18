@@ -40,7 +40,9 @@ def redigir(texto: str, token: str) -> str:
 STATUS_SEM_RESPOSTA = 0  # não é um código HTTP: marca que o servidor não respondeu no prazo
 
 
-def enviar(base_url: str, token: str, req: dict, *, cliente: httpx.Client) -> Resposta:
+def enviar(base_url: str, token: str, req: dict, *, cliente: httpx.Client,
+           limite: int | None = MAX_CORPO_REGISTRADO) -> Resposta:
+    """Envia e devolve a resposta. `limite=None` devolve o corpo inteiro, que fica só na memória."""
     try:
         resposta = cliente.request(
             req["metodo"], base_url + req["caminho"],
@@ -51,4 +53,5 @@ def enviar(base_url: str, token: str, req: dict, *, cliente: httpx.Client) -> Re
     except httpx.TimeoutException as exc:
         # Um fluxo que não termina (por exemplo, um SSE aberto por GET) não pode derrubar a medição.
         return Resposta(STATUS_SEM_RESPOSTA, redigir(str(exc)[:MAX_CORPO_REGISTRADO], token))
-    return Resposta(resposta.status_code, redigir(resposta.text[:MAX_CORPO_REGISTRADO], token))
+    texto = resposta.text if limite is None else resposta.text[:limite]
+    return Resposta(resposta.status_code, redigir(texto, token))

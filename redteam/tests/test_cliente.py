@@ -48,3 +48,14 @@ def test_timeout_vira_resposta_de_status_zero_em_vez_de_derrubar_a_medicao():
     with httpx.Client(transport=httpx.MockTransport(travar)) as cliente:
         r = enviar("http://teste.invalid", TOKEN, REQ, cliente=cliente)
     assert r.status == 0 and "sem resposta" in r.corpo
+
+
+def test_enviar_sem_limite_devolve_o_corpo_inteiro():
+    def responder(request):
+        return httpx.Response(200, text="a" * 10000)
+
+    req = {"nome": "x", "metodo": "POST", "caminho": "/mcp", "autenticacao": "correta",
+           "cabecalhos": {}, "corpo": {"a": 1}, "alvos": ["replica"]}
+    with httpx.Client(transport=httpx.MockTransport(responder)) as cliente:
+        r = enviar("http://teste.invalid", TOKEN, req, cliente=cliente, limite=None)
+    assert len(r.corpo) == 10000
