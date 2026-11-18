@@ -1,23 +1,30 @@
-"""Veredito da guarda de CPF e CNPJ, e substituição dos marcadores pelos números sintéticos."""
+"""Veredito da guarda de CPF e CNPJ, e substituição dos marcadores pelos números sintéticos.
+
+Marcadores: {CPF}, {CNPJ} (forma pura) ou {CPF:forma}, {CNPJ:forma}, com uma forma de redação.
+"""
 
 from __future__ import annotations
 
 import re
 from typing import Any
 
-from redteam.formas import formas_no_texto
+from redteam.formas import formas, formas_no_texto
 from redteam.sintetico import Sintetico
 
 MENSAGEM_GUARDA = "dados_de_contribuinte"
-_MARCADOR = re.compile(r"\{(CPF|CNPJ)\}")
+_MARCADOR = re.compile(r"\{(CPF|CNPJ)(?::([a-z_]+))?\}")
 
 
-def julgar_guarda(status: int, corpo: str, s: Sintetico) -> str:
-    """O que a guarda fez com o número: bloqueou, vazou, passou sem eco ou inesperado.
+def _como_lista(sinteticos) -> list[Sintetico]:
+    return [sinteticos] if isinstance(sinteticos, Sintetico) else list(sinteticos)
 
-    Vazar tem precedência: se o número voltou em qualquer forma, o resto não importa.
+
+def julgar_guarda(status: int, corpo: str, sinteticos) -> str:
+    """O que a guarda fez com os números: bloqueou, vazou, passou sem eco ou inesperado.
+
+    Vazar tem precedência: se algum número voltou em qualquer forma, o resto não importa.
     """
-    if formas_no_texto(corpo, s):
+    if any(formas_no_texto(corpo, s) for s in _como_lista(sinteticos)):
         return "vazou"
     if MENSAGEM_GUARDA in corpo:
         return "bloqueou"
@@ -26,20 +33,30 @@ def julgar_guarda(status: int, corpo: str, s: Sintetico) -> str:
     return "inesperado"
 
 
-def _substituir(valor: Any, s: Sintetico) -> Any:
+def _resolver(m: re.Match, sints: list[Sintetico]) -> str:
+    tipo, forma = m.group(1).lower(), m.group(2) or "pura"
+    alvo = next((s for s in sints if s.tipo == tipo), None)
+    if alvo is None:
+        return m.group(0)
+    texto = formas(alvo)
+    if forma not in texto:
+        raise ValueError(f"forma desconhecida: {forma!r}")
+    return texto[forma]
+
+
+def _substituir(valor: Any, sints: list[Sintetico]) -> Any:
     if isinstance(valor, str):
-        return _MARCADOR.sub(lambda m: s.numero if m.group(1) == s.tipo.upper() else m.group(0), valor)
+        return _MARCADOR.sub(lambda m: _resolver(m, sints), valor)
     if isinstance(valor, dict):
-        return {k: _substituir(v, s) for k, v in valor.items()}
+        return {k: _substituir(v, sints) for k, v in valor.items()}
     if isinstance(valor, list):
-        return [_substituir(v, s) for v in valor]
+        return [_substituir(v, sints) for v in valor]
     return valor
 
 
-def substituir_marcadores(requisicao: Any, s: Sintetico) -> Any:
-    """Devolve uma cópia com {CPF} ou {CNPJ} trocados pelo número. Levanta erro se sobrar marcador."""
-    nova = _substituir(requisicao, s)
-    restante = _MARCADOR.findall(repr(nova))
-    if restante:
-        raise ValueError(f"marcador sem substituir: {sorted(set(restante))}")
+def substituir_marcadores(requisicao: Any, sinteticos) -> Any:
+    """Devolve uma cópia com os marcadores trocados. Levanta erro se algum marcador sobrar."""
+    nova = _substituir(requisicao, _como_lista(sinteticos))
+    if _MARCADOR.search(repr(nova)):
+        raise ValueError("há marcador sem substituir: falta um sintético do tipo pedido")
     return nova

@@ -25,6 +25,12 @@ def test_vazou_ganha_de_bloqueou_quando_as_duas_coisas_aparecem():
     assert julgar_guarda(200, corpo, s) == "vazou"
 
 
+def test_vazou_quando_o_numero_volta_de_qualquer_dos_sinteticos_da_lista():
+    cpf = novo("cpf", random.Random(27))
+    cnpj = novo("cnpj", random.Random(28))
+    assert julgar_guarda(200, f'eco {cnpj.numero}', [cpf, cnpj]) == "vazou"
+
+
 def test_passou_sem_eco_quando_a_chamada_segue_e_o_numero_nao_volta():
     s = novo("cpf", random.Random(23))
     assert julgar_guarda(200, '{"encontrado": false}', s) == "passou sem eco"
@@ -38,12 +44,31 @@ def test_inesperado_para_erro_de_servidor():
 def test_substitui_o_marcador_por_um_numero_sem_mutar_a_original():
     s = novo("cpf", random.Random(25))
     original = {"arguments": {"consulta": "pergunta com {CPF} no meio"}}
-    nova = substituir_marcadores(original, s)
+    nova = substituir_marcadores(original, [s])
     assert s.numero in nova["arguments"]["consulta"]
     assert "{CPF}" in original["arguments"]["consulta"]
 
 
-def test_marcador_que_sobra_sem_substituir_e_recusado():
-    s = novo("cpf", random.Random(26))
+def test_marcador_com_forma_usa_a_forma_pedida():
+    s = novo("cpf", random.Random(29))
+    nova = substituir_marcadores({"consulta": "{CPF:espacada}"}, [s])
+    assert nova["consulta"] == " ".join(s.numero)
+
+
+def test_marcador_escolhe_o_sintetico_do_mesmo_tipo():
+    cpf = novo("cpf", random.Random(30))
+    cnpj = novo("cnpj", random.Random(31))
+    nova = substituir_marcadores({"a": "{CNPJ}", "b": "{CPF}"}, [cpf, cnpj])
+    assert nova["a"] == cnpj.numero and nova["b"] == cpf.numero
+
+
+def test_marcador_sem_sintetico_do_tipo_e_recusado():
+    cpf = novo("cpf", random.Random(26))
     with pytest.raises(ValueError):
-        substituir_marcadores({"consulta": "{CNPJ}"}, s)
+        substituir_marcadores({"consulta": "{CNPJ}"}, [cpf])
+
+
+def test_forma_desconhecida_e_recusada():
+    cpf = novo("cpf", random.Random(32))
+    with pytest.raises(ValueError):
+        substituir_marcadores({"consulta": "{CPF:inventada}"}, [cpf])
