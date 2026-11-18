@@ -37,11 +37,18 @@ def redigir(texto: str, token: str) -> str:
     return texto.replace(token, "<TOKEN>") if token else texto
 
 
+STATUS_SEM_RESPOSTA = 0  # não é um código HTTP: marca que o servidor não respondeu no prazo
+
+
 def enviar(base_url: str, token: str, req: dict, *, cliente: httpx.Client) -> Resposta:
-    resposta = cliente.request(
-        req["metodo"], base_url + req["caminho"],
-        headers=montar_cabecalhos(req.get("autenticacao", "correta"), token, req.get("cabecalhos", {})),
-        content=montar_corpo(req.get("corpo")),
-        timeout=10.0,
-    )
+    try:
+        resposta = cliente.request(
+            req["metodo"], base_url + req["caminho"],
+            headers=montar_cabecalhos(req.get("autenticacao", "correta"), token, req.get("cabecalhos", {})),
+            content=montar_corpo(req.get("corpo")),
+            timeout=10.0,
+        )
+    except httpx.TimeoutException as exc:
+        # Um fluxo que não termina (por exemplo, um SSE aberto por GET) não pode derrubar a medição.
+        return Resposta(STATUS_SEM_RESPOSTA, redigir(str(exc)[:MAX_CORPO_REGISTRADO], token))
     return Resposta(resposta.status_code, redigir(resposta.text[:MAX_CORPO_REGISTRADO], token))

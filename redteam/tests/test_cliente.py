@@ -39,3 +39,12 @@ def test_enviar_devolve_resposta_sem_o_token_e_trunca_o_corpo():
 
 def test_corpo_repetido_gera_o_texto_pedido():
     assert montar_corpo({"texto_repetido": {"caractere": "a", "vezes": 5}}) == b"aaaaa"
+
+
+def test_timeout_vira_resposta_de_status_zero_em_vez_de_derrubar_a_medicao():
+    def travar(request):
+        raise httpx.ReadTimeout("sem resposta no prazo", request=request)
+
+    with httpx.Client(transport=httpx.MockTransport(travar)) as cliente:
+        r = enviar("http://teste.invalid", TOKEN, REQ, cliente=cliente)
+    assert r.status == 0 and "sem resposta" in r.corpo
