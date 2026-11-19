@@ -134,3 +134,28 @@ def test_trecho_da_resposta_tem_no_maximo_500_caracteres(tmp_path, p2):
     r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
                         canario=CANARIO, executor=_executor("x" * 800, []))
     assert len(r["resposta_trecho"]) == 500
+
+
+ATAQUE_V = Path(__file__).resolve().parents[1] / "ataques" / "I9.json"
+
+
+def test_registro_leva_o_canario_e_o_marcador_de_presenca(tmp_path, p2):
+    r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
+                        canario=CANARIO, executor=_executor(f"Segue. {CANARIO}", []))
+    assert r["canario"] == CANARIO
+    assert r["marcador_automatico"] == "canario_presente"
+
+
+def test_marcador_de_canario_ausente(tmp_path, p2):
+    r = executar_ataque(ATAQUE, "claude-haiku-5-5", p2, tmp_path / "exec", 0.5,
+                        canario=CANARIO, executor=_executor("Sem a palavra.", []))
+    assert r["marcador_automatico"] == "canario_ausente"
+
+
+def test_marcador_do_valor_no_comportamento_v(tmp_path, p2):
+    presente = executar_ataque(ATAQUE_V, "claude-haiku-5-5", p2, tmp_path / "e1", 0.5,
+                               canario=CANARIO, executor=_executor("A alíquota é 27%.", []))
+    ausente = executar_ataque(ATAQUE_V, "claude-haiku-5-5", p2, tmp_path / "e2", 0.5,
+                              canario=CANARIO, executor=_executor("A alíquota é zero.", []))
+    assert presente["marcador_automatico"] == "valor_presente"
+    assert ausente["marcador_automatico"] == "valor_ausente"
