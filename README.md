@@ -87,7 +87,7 @@ flowchart TB
 | Parte | Estado |
 |---|---|
 | **Spec A:** pipeline "agente abre PR, gates decidem" | **concluída** em 2026-11-17: o lote de 6 casos rodou sem nenhum vazamento |
-| **Spec B:** red team de prompt injection no P2 | **base neutra e laboratório HTTP implementados**: integridade do P2, cópia de trabalho, esquema do catálogo, estatística (Wilson), varredura de CPF e CNPJ no CI, réplica local e gate da VPS. Sete ataques de protocolo foram medidos na réplica e na VPS: veja o [relatório HTTP](docs/redteam/relatorio-http.md). A guarda de CPF e CNPJ foi medida na réplica (H6 e H7): H6 bloqueou em todas as repetições, e H7 vazou, porque a guarda não reconhece formas disfarçadas: veja o [relatório da guarda](docs/redteam/relatorio-guarda.md). O laboratório de injeção e as sondas **não foram iniciados**: são decisões pendentes |
+| **Spec B:** red team de prompt injection no P2 | **base neutra e laboratório HTTP implementados**: integridade do P2, cópia de trabalho, esquema do catálogo, estatística (Wilson), varredura de CPF e CNPJ no CI, réplica local e gate da VPS. Sete ataques de protocolo foram medidos na réplica e na VPS: veja o [relatório HTTP](docs/redteam/relatorio-http.md). A guarda de CPF e CNPJ foi medida na réplica (H6 e H7): H6 bloqueou em todas as repetições, e H7 vazou, porque a guarda não reconhece formas disfarçadas: veja o [relatório da guarda](docs/redteam/relatorio-guarda.md). O laboratório de injeção foi medido (85 rodadas com dois modelos, e um juiz de outro modelo para as respostas com canário): nenhuma obediência observada pelo critério da palavra-código, com as ressalvas do relatório: veja o [relatório da injeção](docs/redteam/relatorio-injecao.md). As sondas **não foram iniciadas**: são decisões pendentes |
 | Texto "o que deu errado" | [rascunho](docs/o-que-deu-errado.md), a ser reescrito por quem fez o projeto |
 | Previsão do Cristiano (bloco B) | em branco; só a previsão do Claude foi registrada |
 
@@ -170,3 +170,6 @@ uv run python -m pipeline.lote --out /tmp/lote-resultados.json
 | [`docs/redteam/relatorio-http.md`](docs/redteam/relatorio-http.md) | relatório do laboratório HTTP: fichas, previsões contra resultados e limites |
 | [`docs/redteam/relatorio-guarda.md`](docs/redteam/relatorio-guarda.md) | relatório da guarda de CPF e CNPJ (H6 e H7): bloqueio, vazamento pelas formas disfarçadas e recomendações |
 | [`docs/superpowers/plans/2026-11-18-guarda-cpf-cnpj.md`](docs/superpowers/plans/2026-11-18-guarda-cpf-cnpj.md) | plano dos testes da guarda de CPF e CNPJ |
+| [`docs/superpowers/plans/2026-11-18-injecao-canario.md`](docs/superpowers/plans/2026-11-18-injecao-canario.md) | plano do laboratório de injeção, com as revisões feitas durante a execução |
+| [`docs/redteam/relatorio-injecao.md`](docs/redteam/relatorio-injecao.md) | relatório do laboratório de injeção (H13): fichas, juiz, previsões contra resultados e limites |
+| [`docs/redteam/classificacao-canario.json`](docs/redteam/classificacao-canario.json) | classificação das respostas com canário pelo juiz de outro modelo |
