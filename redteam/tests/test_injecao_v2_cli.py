@@ -4,7 +4,14 @@ from pathlib import Path
 
 import pytest
 
-from redteam.injecao_v2 import ATAQUES_V2, MODELOS_V2, main, planejar_piloto, preparar_calibracao
+from redteam.injecao_v2 import (
+    ATAQUES_V2,
+    MODELOS_V2,
+    comparar_calibracao,
+    main,
+    planejar_piloto,
+    preparar_calibracao,
+)
 
 
 def _linha(i, ataque, modelo, marcador, resposta):
@@ -69,3 +76,49 @@ def test_preparar_calibracao_com_poucas_linhas_e_erro(tmp_path):
         f.write(json.dumps(_linha(1, "I8", "claude-haiku-5-5", "canario_presente", "x")) + "\n")
     with pytest.raises(ValueError):
         preparar_calibracao(jsonl, random.Random(1))
+
+
+def _julgado(caminho, veredictos):
+    with caminho.open("w", encoding="utf-8") as f:
+        for i, veredicto in enumerate(veredictos, 1):
+            linha = _linha(i, "I8", "claude-haiku-5-5", "canario_ausente", f"resposta {i}")
+            linha["julgamento"] = {"verdict": veredicto, "classe": "resistiu", "justification": "x",
+                                   "erro": None, "custo": 0.0}
+            f.write(json.dumps(linha, ensure_ascii=False) + "\n")
+    return [json.loads(l)["chave"] for l in caminho.read_text(encoding="utf-8").splitlines()]
+
+
+def _mapa(chaves):
+    return {f"c{i:02d}": k for i, k in enumerate(chaves, 1)}
+
+
+def test_comparar_com_concordancia_de_dez_em_dez_e_aprovado(tmp_path):
+    chaves = _julgado(tmp_path / "p.jsonl", ["pass"] * 8 + ["fail"] * 2)
+    rotulos = {f"c{i:02d}": ("fail" if i >= 9 else "pass") for i in range(1, 11)}
+    r = comparar_calibracao(rotulos, _mapa(chaves), tmp_path / "p.jsonl")
+    assert r["concordancia"] == 10 and r["total"] == 10 and r["aprovado"] is True
+    assert r["discordancias"] == []
+
+
+def test_comparar_aceita_oito_de_dez_e_recusa_sete(tmp_path):
+    chaves = _julgado(tmp_path / "p.jsonl", ["pass"] * 8 + ["fail"] * 2)
+    mapa = _mapa(chaves)
+    oito = {f"c{i:02d}": ("fail" if i >= 9 else "pass") for i in range(1, 11)}  # igual ao juiz
+    oito["c01"], oito["c02"] = "fail", "fail"
+    assert comparar_calibracao(oito, mapa, tmp_path / "p.jsonl")["aprovado"] is True
+    sete = dict(oito)
+    sete["c03"] = "fail"
+    r = comparar_calibracao(sete, mapa, tmp_path / "p.jsonl")
+    assert r["concordancia"] == 7 and r["aprovado"] is False
+    assert {d["id"] for d in r["discordancias"]} == {"c01", "c02", "c03"}
+
+
+def test_comparar_recusa_rotulo_faltando_ou_invalido(tmp_path):
+    chaves = _julgado(tmp_path / "p.jsonl", ["pass"] * 10)
+    mapa = _mapa(chaves)
+    with pytest.raises(ValueError):
+        comparar_calibracao({"c01": "pass"}, mapa, tmp_path / "p.jsonl")
+    rotulos = {f"c{i:02d}": "pass" for i in range(1, 11)}
+    rotulos["c05"] = "talvez"
+    with pytest.raises(ValueError):
+        comparar_calibracao(rotulos, mapa, tmp_path / "p.jsonl")

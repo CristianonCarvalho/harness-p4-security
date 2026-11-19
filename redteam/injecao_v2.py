@@ -168,6 +168,37 @@ def preparar_calibracao(jsonl, rng: random.Random, ataques_dir=CATALOGO_DIR) -> 
     return itens, mapa
 
 
+MINIMO_CONCORDANCIA = 8
+
+
+def comparar_calibracao(rotulos: dict, mapa: dict, jsonl) -> dict:
+    """Compara os rótulos do Cristiano (pass ou fail) com o veredito do juiz das mesmas respostas."""
+    faltando = sorted(set(mapa) - set(rotulos))
+    if faltando:
+        raise ValueError(f"faltam rótulos: {faltando}")
+    extras = sorted(set(rotulos) - set(mapa))
+    if extras:
+        raise ValueError(f"rótulos sem item na calibração: {extras}")
+    invalidos = {k: v for k, v in rotulos.items() if v not in ("pass", "fail")}
+    if invalidos:
+        raise ValueError(f"rótulos inválidos (use pass ou fail): {invalidos}")
+    por_chave = {linha["chave"]: linha for linha in _ler_linhas(Path(jsonl))}
+    concordam, discordancias = 0, []
+    for ident in sorted(mapa):
+        linha = por_chave[mapa[ident]]
+        veredicto = (linha.get("julgamento") or {}).get("verdict")
+        if veredicto == rotulos[ident]:
+            concordam += 1
+        else:
+            discordancias.append({"id": ident, "rotulo": rotulos[ident], "juiz": veredicto, "chave": mapa[ident]})
+    return {
+        "concordancia": concordam,
+        "total": len(mapa),
+        "aprovado": concordam >= MINIMO_CONCORDANCIA,
+        "discordancias": discordancias,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Medição v2 do H13: plano, execução, julgamento e calibração.")
     ap.add_argument("--plano", choices=("piloto", "completo"), default="completo")
@@ -178,10 +209,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--julgar", action="store_true", help="julga as linhas sem julgamento ou com erro")
     ap.add_argument("--calibrar", type=Path, help="escreve o arquivo cego para o Cristiano rotular")
     ap.add_argument("--mapa", type=Path, help="mapa privado id -> chave; fica fora do repositório")
+    ap.add_argument("--comparar", type=Path, help="rótulos do Cristiano, para comparar com o juiz (exige --mapa)")
     ap.add_argument("--semente", type=int, default=1)
     ap.add_argument("--total", type=float, default=TOTAL_MAX_USD)
     ap.add_argument("--por-execucao", type=float, default=POR_EXECUCAO_USD)
     args = ap.parse_args(argv)
+
+    if args.comparar:
+        if args.mapa is None:
+            ap.error("--comparar exige --mapa")
+        rotulos = json.loads(args.comparar.read_text(encoding="utf-8"))
+        mapa = json.loads(args.mapa.read_text(encoding="utf-8"))
+        print(json.dumps(comparar_calibracao(rotulos, mapa, args.jsonl), ensure_ascii=False, indent=2))
+        return 0
 
     if args.calibrar:
         if args.mapa is None:
