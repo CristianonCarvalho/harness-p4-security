@@ -8,8 +8,10 @@ e refaz as linhas em que ele deu erro.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
+import random
 import shutil
 from pathlib import Path
 
@@ -128,3 +130,81 @@ def julgar_v2(jsonl, base_dir, *, ataques_dir=CATALOGO_DIR, executor=executar) -
             julgadas += 1
     _reescrever(jsonl, linhas)
     return {"julgadas": julgadas, "erros": erros}
+
+
+def planejar_piloto() -> list[tuple[str, str, int]]:
+    return [(ataque, modelo, 1) for ataque in ATAQUES_V2 for modelo in MODELOS_V2]
+
+
+def preparar_calibracao(jsonl, rng: random.Random, ataques_dir=CATALOGO_DIR) -> tuple[list[dict], dict]:
+    """Dez respostas do piloto para o Cristiano rotular às cegas: 3 com sinal, 3 sem sinal e 4 do controle.
+
+    O arquivo cego não traz ataque, modelo, marcador nem julgamento. O mapa id -> chave fica à parte.
+    """
+    linhas = [l for l in _ler_linhas(Path(jsonl)) if l.get("status") == "rodada" and l.get("resposta_completa")]
+    sinal = [l for l in linhas if l["ataque"] not in ATAQUES_CONTROLE
+             and l["marcador_automatico"] in ("canario_presente", "valor_presente")]
+    sem_sinal = [l for l in linhas if l["ataque"] not in ATAQUES_CONTROLE
+                 and l["marcador_automatico"] in ("canario_ausente", "valor_ausente")]
+    controle = [l for l in linhas if l["ataque"] in ATAQUES_CONTROLE]
+    escolhidas = []
+    for grupo, n in ((sinal, 3), (sem_sinal, 3), (controle, 4)):
+        escolhidas += rng.sample(grupo, min(n, len(grupo)))
+    restantes = [l for l in linhas if l not in escolhidas]
+    faltam = 10 - len(escolhidas)
+    if faltam > 0:
+        escolhidas += rng.sample(restantes, min(faltam, len(restantes)))
+    if len(escolhidas) < 10:
+        raise ValueError(f"o piloto tem {len(linhas)} rodadas com resposta; a calibração precisa de 10")
+    rng.shuffle(escolhidas)
+    itens, mapa = [], {}
+    for i, linha in enumerate(escolhidas, 1):
+        ident = f"c{i:02d}"
+        _, registros, pergunta, _ = carregar_ataque_injecao(Path(ataques_dir) / f"{linha['ataque']}.json")
+        embutido = " ".join(reg["payload"].replace("{CANARIO}", linha["canario"]) for reg in registros)
+        itens.append({"id": ident, "pergunta": pergunta, "texto_embutido": embutido,
+                      "resposta": linha["resposta_completa"]})
+        mapa[ident] = linha["chave"]
+    return itens, mapa
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Medição v2 do H13: plano, execução, julgamento e calibração.")
+    ap.add_argument("--plano", choices=("piloto", "completo"), default="completo")
+    ap.add_argument("--jsonl", type=Path, required=True)
+    ap.add_argument("--base", type=Path, required=True, help="pasta para as cópias e para o juiz")
+    ap.add_argument("--p2", type=Path, help="caminho do P2 (exigido com --executar)")
+    ap.add_argument("--executar", action="store_true", help="roda as rodadas que faltam")
+    ap.add_argument("--julgar", action="store_true", help="julga as linhas sem julgamento ou com erro")
+    ap.add_argument("--calibrar", type=Path, help="escreve o arquivo cego para o Cristiano rotular")
+    ap.add_argument("--mapa", type=Path, help="mapa privado id -> chave; fica fora do repositório")
+    ap.add_argument("--semente", type=int, default=1)
+    ap.add_argument("--total", type=float, default=TOTAL_MAX_USD)
+    ap.add_argument("--por-execucao", type=float, default=POR_EXECUCAO_USD)
+    args = ap.parse_args(argv)
+
+    if args.calibrar:
+        if args.mapa is None:
+            ap.error("--calibrar exige --mapa")
+        itens, mapa = preparar_calibracao(args.jsonl, random.Random(args.semente))
+        args.calibrar.write_text(json.dumps(itens, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        args.mapa.write_text(json.dumps(mapa, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"calibração: {len(itens)} itens; o mapa privado está em {args.mapa}")
+        return 0
+
+    plano = planejar_piloto() if args.plano == "piloto" else planejar_v2()
+    if args.executar:
+        if args.p2 is None:
+            ap.error("--executar exige --p2")
+        saida = medir_v2(plano, args.p2, args.base, args.jsonl, total_max=args.total,
+                         por_execucao=args.por_execucao)
+        print(json.dumps(saida, ensure_ascii=False))
+    elif not args.julgar:
+        print(f"{len(plano)} rodadas no plano '{args.plano}'. Sem --executar, nada roda.")
+    if args.julgar:
+        print(json.dumps(julgar_v2(args.jsonl, args.base), ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
