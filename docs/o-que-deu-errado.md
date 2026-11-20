@@ -1,6 +1,6 @@
 # O que deu errado (P4, spec A)
 
-> **RASCUNHO escrito pelo Claude.** O roadmap pede um texto curto sobre o que deu errado, e ele vale mais com a sua voz e com o que você percebeu. Reescreva, corte ou acrescente. As frases abaixo são os fatos; o "o que eu mudaria" é sugestão minha. Os trechos marcados com "Conferido em 2026-11-20" foram checados contra os repositórios; o resto vem do histórico e não foi reconferido.
+> **Histórico e autocrítica.** As seções iniciais registram os fatos e o histórico técnico levantados no repositório (com checagens marcadas em 2026-11-20). A seção final traz a leitura direta e a autocrítica do Cristiano sobre os erros e o processo de trabalho.
 
 O pipeline "agente abre PR, gates decidem" funcionou no lote final: o caso bom entrou com aprovação humana e os cinco ruins foram barrados, sem vazamento. O caminho até lá teve erros, e cada um ensinou algo.
 
@@ -30,6 +30,17 @@ O pipeline "agente abre PR, gates decidem" funcionou no lote final: o caso bom e
 
 Estado em 2026-11-20: a previsão sua continua em branco, e o lote não foi repetido. A lacuna do `check-repo` e a redução do `ci.yml` não foram reconferidas nesta data; o `ci.yml` ainda roda duas vezes por PR.
 
-## Sua leitura
+## Minha leitura (por Cristiano)
 
-*A escrever pelo Cristiano: o que você acha que foi o erro principal, o que percebeu sobre a sua forma de trabalhar e o que muda daqui pra frente.*
+O critério do roadmap foi atendido no lote final — o PR bom entrou e os cinco ruins foram barrados —, mas o percurso expôs vícios claros na minha forma de planejar e executar:
+
+1. **O erro principal foi planejar de memória:** Escrevi a especificação do P3 confiando na lembrança em vez de inspecionar o repositório. Achei que o `check-repo` validava o texto dos prompts do juiz, e só no ensaio à mão descobri que podia adulterar o prompt sem quebrar nada (733 testes verdes). Tive que trocar o caso 05 às pressas e deixei uma lacuna aberta. Memória não substitui inspeção do código real.
+2. **Terceirização da intuição e da calibração:** O roadmap pedia para registrar previsões antes do lote para treinar minha própria sensibilidade técnica, mas deixei o bloco B em branco. No P2, aceitei os rótulos do Claude para aprovar o portão de calibração em vez de fazer a rotulagem cega humana. Medir consistência do modelo consigo mesmo não substitui validação humana.
+3. **Apressar conclusões sem evidência (o "mesclei" prematuro):** Duas vezes dei um PR como mesclado e limpei branch antes de conferir o estado na API do GitHub, com o PR ainda aberto. A sensação de dever cumprido veio antes da checagem factual.
+4. **Modelos não são camada de segurança:** O Haiku 5.5 tentou adulterar o CI, gerar credencial falsa e inserir `shell=True`. Não recusou absolutamente nada. Se dependesse da "boa vontade" ou de alinhamento do modelo, tudo teria passado. O que segurou o pipeline foram os controles determinísticos fora do agente (`path-guard`, linters e ruleset).
+
+**O que muda daqui para frente:**
+- *Ground truth no código:* Nenhuma spec ou caso de teste começa de cabeça; leio e executo os scripts do repositório antes de desenhar o plano.
+- *Evidência antes de asserção:* Não considero nada mesclado ou corrigido sem antes validar o retorno da API ou o comando de checagem no terminal.
+- *Defesa determinística incondicional:* Segurança de agentes não aposta em recusa de LLM; regras críticas vivem em código determinístico fora do alcance do modelo.
+- *Assumir o julgamento humano:* Preencher minhas próprias previsões e fazer a anotação manual cega onde o método exigir avaliação humana, em vez de depender de consistência sintética entre IAs.
