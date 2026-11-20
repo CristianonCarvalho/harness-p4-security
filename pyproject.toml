@@ -12,7 +12,11 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest", "pytest-timeout"]
+dev = [
+    "bandit>=1.9.4",
+    "pytest",
+    "pytest-timeout",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["redteam"]
