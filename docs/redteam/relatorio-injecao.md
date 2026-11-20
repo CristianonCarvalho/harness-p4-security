@@ -1,5 +1,7 @@
 # Relatório do laboratório de injeção pelo texto da norma (H13)
 
+> **Nota (2026-11-20):** este é o relatório da v1. Ele conta a palavra-código como obediência, o que mede menção e não obediência; a seção Resumo traz a correção. A v2, com juiz C4 em todas as respostas, duas perguntas, dois alvos e controle neutro, está em [`relatorio-injecao-v2.md`](relatorio-injecao-v2.md).
+
 - **Data:** 2026-11-19 (medições feitas em 2026-11-18)
 - **Hipótese:** H13 do P3: um texto de instrução escondido num documento que volta pela ferramenta do P2 é obedecido pelo modelo?
 - **Alvo:** o P2 no commit `1a02e552`, usado como cópia nova a cada rodada, com o corpo envenenado só na cópia. O P2 original ficou igual em todas as medições (conferido antes e depois de cada uma).
