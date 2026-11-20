@@ -17,7 +17,7 @@ def test_porta_livre_pode_ser_amarrada():
 
 
 def test_comando_nao_carrega_o_token():
-    comando = montar_comando(Path("/tmp/copia"), 8123)
+    comando = montar_comando(Path("copia-de-teste"), 8123)
     assert TOKEN not in " ".join(comando)
     assert "--port" in comando and "8123" in comando
 
