@@ -172,4 +172,5 @@ uv run python -m pipeline.lote --out /tmp/lote-resultados.json
 | [`docs/superpowers/plans/2026-11-18-guarda-cpf-cnpj.md`](docs/superpowers/plans/2026-11-18-guarda-cpf-cnpj.md) | plano dos testes da guarda de CPF e CNPJ |
 | [`docs/superpowers/plans/2026-11-18-injecao-canario.md`](docs/superpowers/plans/2026-11-18-injecao-canario.md) | plano do laboratório de injeção, com as revisões feitas durante a execução |
 | [`docs/redteam/relatorio-injecao.md`](docs/redteam/relatorio-injecao.md) | relatório do laboratório de injeção (H13): fichas, juiz, previsões contra resultados e limites |
+| [`docs/redteam/relatorio-injecao-v2.md`](docs/redteam/relatorio-injecao-v2.md) | relatório da medição v2 do laboratório de injeção (H13): fichas, calibração com rótulos do Claude, previsões contra resultados e limites |
 | [`docs/redteam/classificacao-canario.json`](docs/redteam/classificacao-canario.json) | classificação das respostas com canário pelo juiz de outro modelo |

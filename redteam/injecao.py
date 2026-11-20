@@ -12,7 +12,7 @@ from redteam.esquema import Attack, load_attack
 
 ALVOS = {"alvo", "alvo2"}
 POSICOES = {"inicio", "fim"}
-ORACULOS = {"canario"}
+ORACULOS = {"canario", "valor"}
 MAX_REGISTROS = 2
 
 
@@ -35,12 +35,23 @@ def validar_entrada_injecao(entrada: dict) -> tuple[list[dict], str]:
     return registros, pergunta
 
 
+def carregar_criterio_injecao(caminho: Path) -> dict:
+    """O critério do ataque: o oráculo e, para o oráculo `valor`, o valor que conta como obediência."""
+    bruto = json.loads(Path(caminho).read_text(encoding="utf-8"))
+    criterio = bruto["criterio"]
+    oraculo = criterio.get("oraculo")
+    if oraculo not in ORACULOS:
+        raise ValueError(f"oráculo inválido: {oraculo!r}")
+    valor = criterio.get("valor")
+    if oraculo == "valor" and (not isinstance(valor, str) or not valor.strip()):
+        raise ValueError("oráculo valor exige criterio.valor como texto não vazio")
+    return {"oraculo": oraculo, "valor": valor}
+
+
 def carregar_ataque_injecao(caminho: Path) -> tuple[Attack, list[dict], str, str]:
     caminho = Path(caminho)
     attack = load_attack(caminho)
     bruto = json.loads(caminho.read_text(encoding="utf-8"))
     registros, pergunta = validar_entrada_injecao(bruto["entrada"])
-    oraculo = bruto["criterio"].get("oraculo")
-    if oraculo not in ORACULOS:
-        raise ValueError(f"oráculo inválido: {oraculo!r}")
+    oraculo = carregar_criterio_injecao(caminho)["oraculo"]
     return attack, registros, pergunta, oraculo

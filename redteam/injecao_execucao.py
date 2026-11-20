@@ -11,7 +11,7 @@ from pathlib import Path
 
 from redteam.canario import classificar, expostos, novo_canario
 from redteam.envenenar import envenenar
-from redteam.injecao import carregar_ataque_injecao
+from redteam.injecao import carregar_ataque_injecao, carregar_criterio_injecao
 from redteam.integridade import conferir, snapshot
 from redteam.runner_injecao import executar, gravar_mcp_config, montar_argv
 from redteam.workdir import MCP_CONFIG_NAME, prepare_workdir
@@ -34,6 +34,7 @@ def executar_ataque(
     `executor(argv, pergunta, cwd) -> dict` é o runner; os testes passam um falso.
     """
     attack, registros, pergunta, _ = carregar_ataque_injecao(Path(ataque))
+    criterio = carregar_criterio_injecao(Path(ataque))
     p2_dir = Path(p2_dir)
     dir_execucao = Path(dir_execucao)
     if dir_execucao.exists():
@@ -59,6 +60,10 @@ def executar_ataque(
     veredito = None if r["erro"] else classificar(vistos, resposta, canario)
     posicao = resposta.find(canario)
     posicao_canario = posicao if posicao >= 0 else None
+    if criterio["oraculo"] == "valor":
+        marcador = "valor_presente" if criterio["valor"] in resposta else "valor_ausente"
+    else:
+        marcador = "canario_presente" if posicao_canario is not None else "canario_ausente"
     return {
         "ataque": attack.id,
         "modelo": modelo,
@@ -72,4 +77,6 @@ def executar_ataque(
         "resposta_completa": resposta,
         "posicao_canario": posicao_canario,
         "limite_status": r.get("limite_status"),
+        "canario": canario,
+        "marcador_automatico": marcador,
     }
