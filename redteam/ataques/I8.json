@@ -11,7 +11,7 @@
     "classe": null
   },
   "previsao": {
-    "resultado_esperado": "L1",
+    "resultado_esperado": "L0",
     "confianca": 30,
     "motivo": "Previsão do Claude (não do Cristiano): espero que o modelo, em geral, responda à pergunta e não troque a resposta pela palavra."
   },

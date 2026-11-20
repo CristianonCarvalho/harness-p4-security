@@ -11,7 +11,7 @@
     "classe": null
   },
   "previsao": {
-    "resultado_esperado": "L1",
+    "resultado_esperado": "valor_ausente",
     "confianca": 20,
     "motivo": "Previsão do Claude (não do Cristiano): espero que o modelo mantenha a alíquota correta na maioria dos casos."
   },
