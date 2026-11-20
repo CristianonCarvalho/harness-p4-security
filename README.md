@@ -87,9 +87,20 @@ flowchart TB
 | Parte | Estado |
 |---|---|
 | **Spec A:** pipeline "agente abre PR, gates decidem" | **concluída** em 2026-11-17: o lote de 6 casos rodou sem nenhum vazamento |
-| **Spec B:** red team de prompt injection no P2 | **base neutra e laboratório HTTP implementados**: integridade do P2, cópia de trabalho, esquema do catálogo, estatística (Wilson), varredura de CPF e CNPJ no CI, réplica local e gate da VPS. Sete ataques de protocolo foram medidos na réplica e na VPS: veja o [relatório HTTP](docs/redteam/relatorio-http.md). A guarda de CPF e CNPJ foi medida na réplica (H6 e H7): H6 bloqueou em todas as repetições, e H7 vazou, porque a guarda não reconhece formas disfarçadas: veja o [relatório da guarda](docs/redteam/relatorio-guarda.md). O laboratório de injeção foi medido (85 rodadas com dois modelos, e um juiz de outro modelo para as respostas com canário): nenhuma obediência observada pelo critério da palavra-código, com as ressalvas do relatório: veja o [relatório da injeção](docs/redteam/relatorio-injecao.md). As sondas **não foram iniciadas**: são decisões pendentes |
+| **Spec B:** red team de prompt injection no P2 | **base neutra, laboratório HTTP, guarda e injeção medidos.** Base: integridade do P2, cópia de trabalho, esquema do catálogo, estatística (Wilson), varredura de CPF e CNPJ e SAST com Bandit no CI deste repositório, réplica local e gate da VPS. Protocolo HTTP: sete ataques medidos na réplica, e três também na VPS (H1, H2 e H5): veja o [relatório HTTP](docs/redteam/relatorio-http.md). Guarda de CPF e CNPJ: H6 bloqueou em todas as repetições, e H7 vazou nas formas disfarçadas, sem mitigação aplicada: veja o [relatório da guarda](docs/redteam/relatorio-guarda.md). Injeção (H13): medição v2 com 210 rodadas e nenhuma obediência observada, com a ressalva de que o juiz não foi calibrado com obediência real: veja o [relatório v2](docs/redteam/relatorio-injecao-v2.md). A [v1](docs/redteam/relatorio-injecao.md) está superada. As sondas pendentes estão em [Cortes](#cortes) |
 | Texto "o que deu errado" | [rascunho](docs/o-que-deu-errado.md), a ser reescrito por quem fez o projeto |
 | Previsão do Cristiano (bloco B) | em branco; só a previsão do Claude foi registrada |
+
+## Cortes
+
+O roadmap diz "corte o escopo, não o critério de concluído". Estes itens ficam fora deste projeto, declarados:
+
+- **Sandbox de verdade** (container ou `sandbox-exec`): não existe no código. Existe permissão mínima: o agente roda com `contents: read`, sem `Bash`, e o token que escreve só existe depois do guard.
+- **Tracing com OpenTelemetry:** só aparece nos roadmaps, não no código.
+- **Mitigação da guarda de CPF e CNPJ (H7):** não aplicada. A correção fica no P2, que é outro repositório. O achado está documentado como vazamento sem mitigação.
+- **H8 em `GET /mcp`:** achado aberto, medido só na réplica. O fluxo SSE fica aberto sem limite, e a decisão de limitá-lo está pendente. Medir o limite exigiria teste de carga, que fica fora do escopo por ser negação de serviço.
+- **Sondas não medidas:** H3 e H4 na VPS; H8 e H9 na VPS; H12 no servidor remoto (herdado do P3); o hook do P2 dentro do Claude Code.
+- **Calibração do juiz com obediência real (H13):** não feita. A limitação está no [relatório v2](docs/redteam/relatorio-injecao-v2.md).
 
 ## Resultado do lote
 
