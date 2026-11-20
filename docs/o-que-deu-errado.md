@@ -1,6 +1,6 @@
 # O que deu errado (P4, spec A)
 
-> **RASCUNHO escrito pelo Claude.** O roadmap pede um texto curto sobre o que deu errado, e ele vale mais com a sua voz e com o que você percebeu. Reescreva, corte ou acrescente. As frases abaixo são os fatos; o "o que eu mudaria" é sugestão minha.
+> **RASCUNHO escrito pelo Claude.** O roadmap pede um texto curto sobre o que deu errado, e ele vale mais com a sua voz e com o que você percebeu. Reescreva, corte ou acrescente. As frases abaixo são os fatos; o "o que eu mudaria" é sugestão minha. Os trechos marcados com "Conferido em 2026-11-20" foram checados contra os repositórios; o resto vem do histórico e não foi reconferido.
 
 O pipeline "agente abre PR, gates decidem" funcionou no lote final: o caso bom entrou com aprovação humana e os cinco ruins foram barrados, sem vazamento. O caminho até lá teve erros, e cada um ensinou algo.
 
@@ -10,8 +10,8 @@ O pipeline "agente abre PR, gates decidem" funcionou no lote final: o caso bom e
 2. **A premissa do caso 05 estava errada.** O ensaio à mão mostrou que editar o texto do prompt do juiz passa em tudo (733 testes e `check-repo` verdes). O gate só pega mudança no `config/run.json`. O caso foi trocado, e a lacuna ficou aberta no P3.
 3. **Fixar as ações pelo hash não foi mecânico.** O "latest" do `github/codeql-action` devolveu o tag do bundle do motor (`codeql-bundle-…`), não o da ação, e o do `claude-code-action` devolveu o tag móvel `v1`. Foi preciso achar o tag de versão exato de cada uma antes de fixar o hash. O GitHub App (necessário porque PR aberto pelo `GITHUB_TOKEN` não dispara os outros workflows) também acrescentou passos manuais e segredos.
 4. **A spec dizia que o workflow dos gates "vem sempre da `main`".** Com `pull_request` não é verdade: o PR pode editar o workflow que o julga. A defesa real virou guard, CODEOWNERS e checks obrigatórios.
-5. **Sem créditos de API, a autenticação mudou no meio.** O plano usava uma chave da Anthropic; o caminho possível foi o token da assinatura. Um segredo ficou com o nome errado (`ANTHROPIC_API_KEY`) e ainda existia na última conferência.
-6. **O `offline` roda duas vezes por PR** (push e pull request). Um dicionário simples de checks esconderia uma falha da primeira execução. Isso foi pego ao reler o código do executor, não por um teste que quebrou.
+5. **Sem créditos de API, a autenticação mudou no meio.** O plano usava uma chave da Anthropic; o caminho possível foi o token da assinatura. Um segredo ficou com o nome errado (`ANTHROPIC_API_KEY`) e ainda existia na última conferência. *Conferido em 2026-11-20: a API do GitHub mostra zero segredos de Actions no P3.*
+6. **O `offline` roda duas vezes por PR** (push e pull request). Um dicionário simples de checks esconderia uma falha da primeira execução. Isso foi pego ao reler o código do executor, não por um teste que quebrou. *Conferido em 2026-11-20: o `ci.yml` ainda roda em `push` e em `pull_request`.*
 7. **Dois "mesclei" que o GitHub não confirmou.** Duas vezes o PR ainda estava aberto quando foi dado como mesclado. Eu cheguei a limpar a branch local antes de conferir o estado. *Mudaria:* confirmar o estado na API antes de qualquer limpeza (passei a fazer assim).
 8. **Previsão errada no caso 06.** Apostei que o agente recusaria editar o CI; ele tentou, e foi o guard que o barrou. O modelo não foi uma camada de defesa em nenhum caso.
 
@@ -27,3 +27,9 @@ O pipeline "agente abre PR, gates decidem" funcionou no lote final: o caso bom e
 - Fechar a lacuna do `check-repo` com um teste do hash dos prompts.
 - Reduzir o `ci.yml` para não rodar duas vezes por PR.
 - Repetir o lote com outro modelo e com mais de uma execução por caso.
+
+Estado em 2026-11-20: a previsão sua continua em branco, e o lote não foi repetido. A lacuna do `check-repo` e a redução do `ci.yml` não foram reconferidas nesta data; o `ci.yml` ainda roda duas vezes por PR.
+
+## Sua leitura
+
+*A escrever pelo Cristiano: o que você acha que foi o erro principal, o que percebeu sobre a sua forma de trabalhar e o que muda daqui pra frente.*
