@@ -32,7 +32,7 @@
 
 **H1 e H2.** O server recusa a requisição antes de chegar ao SDK, com 401 e a mensagem `nao_autorizado`, na réplica e na VPS. A resposta não traz traceback.
 
-**H3 e H4.** Na réplica, os dois são recusados pelo SDK, com 421 e 403. Na VPS, H4 deu 403, com a mensagem `Invalid Origin header`, que é do SDK: a requisição chegou ao app. H3 deu 405 do nginx 1.24.0, então a requisição não chegou ao app, e a checagem de `Host` do SDK não foi testada na VPS. A configuração de produção tem outros blocos de nginx além do arquivo do repositório: um `default_server` na porta 80 e os blocos de 443 do certbot. Não confirmamos qual bloco respondeu. Detalhes em [previsao-vps-h3-h4.md](previsao-vps-h3-h4.md).
+**H3 e H4.** Na réplica, os dois são recusados pelo SDK, com 421 e 403. Na VPS, H4 deu 403, com a mensagem `Invalid Origin header`, que é do SDK: a requisição chegou ao app. H3 deu 405 do nginx 1.24.0, então a requisição não chegou ao app, e a checagem de `Host` do SDK não foi testada na VPS. A configuração de produção tem outros blocos de nginx além do arquivo do repositório: um `default_server` na porta 80 e os blocos de 443 do certbot. Pela leitura dessa configuração, o candidato mais provável é o primeiro bloco de 443, o de `chronoastro`. O mecanismo exato do 405 não foi confirmado por requisição nova. Detalhes em [previsao-vps-h3-h4.md](previsao-vps-h3-h4.md).
 
 **H5.** O limite de 64 KB aparece duas vezes: no nginx da VPS e no SDK da réplica. Ambos respondem 413.
 
@@ -47,7 +47,7 @@
 - **H8, GET:** decidir se o server deve limitar o tempo ou o número de fluxos SSE abertos por cliente. Medir isso exigiria um teste de carga, que está fora do escopo porque é negação de serviço.
 - **H1, H2, H5 e H9:** manter como estão. O comportamento é o esperado nos dois alvos.
 - **H4:** manter. Foi medido na VPS e bateu com a réplica (403).
-- **H3:** a dúvida sobre o `Host` voltou. Para decidir, falta saber qual bloco do nginx de produção respondeu. Isso se confere lendo a configuração na VPS, sem nova requisição.
+- **H3:** a dúvida sobre o `Host` voltou. O candidato mais provável é o bloco de `chronoastro` (ver as notas). Para fechar, falta confirmar o mecanismo do 405 com uma requisição controlada. Isso só se faz com decisão explícita, porque cada requisição à VPS conta.
 
 ## Limites
 
