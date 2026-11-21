@@ -24,7 +24,14 @@ Para cada ataque, escreva o resultado esperado (código HTTP), a confiança em p
 
 ## Previsão do Claude
 
-*A ser preenchida depois, em commit separado. Não é a sua previsão.*
+*Previsão do Claude (não do Cristiano), escrita depois da do Cristiano.*
+
+| Ataque | Resultado esperado (código HTTP) | Confiança (0–100%) | Motivo |
+|---|---|---|---|
+| H3 | 421 | 80% | O arquivo `deploy/nginx-mcpreforma.conf` tem um único bloco `server`, na porta 80, sem `default_server` e sem bloco que recuse Host desconhecido. Um `Host: exemplo.invalid` cai nesse bloco e chega ao app, porque `proxy_set_header Host $host` repassa o valor. O SDK compara com o `TAXLAW_ALLOWED_HOST` e responde 421, como na réplica. |
+| H4 | 403 | 85% | O Nginx não altera o cabeçalho `Origin`: ele só define `Host`, `X-Forwarded-For` e `X-Forwarded-Proto`. O P2 usa `allowed_origins=[]`, então o SDK recusa qualquer `Origin` de navegador com 403, como na réplica. |
+
+Ressalva: li o arquivo de instalação. O certbot edita esse arquivo para HTTPS, então a configuração em produção pode ser outra. Não a conferi.
 
 ## Resultado
 
