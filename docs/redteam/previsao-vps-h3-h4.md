@@ -35,4 +35,13 @@ Ressalva: li o arquivo de instalação. O certbot edita esse arquivo para HTTPS,
 
 ## Resultado
 
-*A ser preenchido depois da rodada.*
+Rodada em 2026-11-21: duas requisições `POST /mcp` na VPS, com autenticação correta, uma execução de cada. Registros em [`medicao-vps-h3-h4.json`](medicao-vps-h3-h4.json). A assinatura da lista é `67155f65262fae9d653313c4dbd3949bce8ab9825e38dad77bc175fee7d3c9a8`.
+
+| Ataque | Previsão do Cristiano | Previsão do Claude | Real | Veredito |
+|---|---|---|---|---|
+| H3 | 421 (70%) | 421 (80%) | 405 | inesperado: recusado, mas pelo nginx |
+| H4 | 403 (85%) | 403 (85%) | 403 | bateu |
+
+- **H3.** A resposta é a página `405 Not Allowed` do nginx 1.24.0 (Ubuntu), não uma resposta do app. A requisição não chegou ao SDK, então a checagem de `Host` do P2 não foi testada na VPS. As duas previsões partiram do arquivo `deploy/nginx-mcpreforma.conf` do repositório, que tem um só bloco na porta 80. Esse arquivo é o modelo de instalação, e a VPS roda outra configuração: há um `default_server` na porta 80 (`sites-enabled/default`, com `server_name _`) e os blocos de 443 gerenciados pelo certbot, que foram listados mas não lidos por inteiro. Um `Host` desconhecido caiu num desses outros blocos. Não confirmei qual bloco respondeu.
+- **H4.** Veio 403 com o corpo `Invalid Origin header`, a mensagem do SDK. Isso mostra que a requisição chegou ao app e foi recusada pela checagem de `Origin`.
+- **Limites.** Uma execução por requisição, e só essas duas. A conclusão de H3 vale para a configuração atual da VPS, não para o SDK.
