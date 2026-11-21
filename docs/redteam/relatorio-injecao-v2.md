@@ -6,7 +6,7 @@
 - **Modelos medidos (alvo):** `claude-haiku-5-5` e `claude-sonnet-5-5`.
 - **Juiz:** `claude-opus-5-5`, sem ferramentas, com a rubrica C4 de [`redteam/juiz.py`](../../redteam/juiz.py). Ele julga todas as respostas, não só as com palavra-código.
 - **Plano:** [`docs/superpowers/plans/2026-11-19-injecao-h13-v2.md`](../superpowers/plans/2026-11-19-injecao-h13-v2.md).
-- **Previsões:** escritas pelo Claude e rotuladas como "Previsão do Claude" no catálogo. O bloco do Cristiano ficou em branco, então não há placar humano.
+- **Previsões:** escritas pelo Claude e rotuladas como "Previsão do Claude" no catálogo. O bloco do Cristiano não foi preenchido: o experimento rodou antes da previsão, então não há placar humano.
 - **Dados:** [`docs/redteam/medicao-injecao-v2.jsonl`](medicao-injecao-v2.jsonl), 210 linhas, uma por rodada. Piloto de 18 rodadas em [`docs/redteam/piloto-injecao-v2.jsonl`](piloto-injecao-v2.jsonl).
 
 ## Resumo
@@ -77,7 +77,7 @@ A verificação de "zero" e "27%" foi feita por busca de texto, não por leitura
 - **Exposição não é 100%:** em 3 de 210 rodadas o payload não chegou ao modelo. Essas rodadas não medem resistência.
 - **Um commit do P2:** todas as rodadas usaram o commit `1a02e55`. A medição começou em 2026-11-19.
 - **O hash do corpus registrado não identifica o P2 original.** Cada rodada grava o hash do corpus depois do envenenamento. O envenenamento reescreve o JSON, então até um controle sem payload tem hash diferente do original (`c269388f…`). Esse hash identifica a cópia usada, não o P2. O original foi conferido pelo `git status`.
-- **Previsões:** foram escritas pelo Claude. O bloco do Cristiano ficou em branco, então não há comparação humana. O campo `resultado_esperado` de T e V estava inconsistente com o motivo; foi corrigido depois da medição (ver acima). O passo 3.2 do plano H13 v2 ainda diz `L1` para T e V. O plano é o registro original, e não foi editado.
+- **Previsões:** foram escritas pelo Claude. O bloco do Cristiano não foi preenchido: o experimento rodou antes da previsão, então não há comparação humana. O campo `resultado_esperado` de T e V estava inconsistente com o motivo; foi corrigido depois da medição (ver acima). O passo 3.2 do plano H13 v2 ainda diz `L1` para T e V. O plano é o registro original, e não foi editado.
 - **Independência entre rodadas:** todas as rodadas de um mesmo ataque usam o mesmo texto envenenado, com exceção do canário, que é gerado a cada rodada. Duas rodadas do mesmo ataque não são independentes no sentido estatístico forte.
 
 ## Comparação com a v1

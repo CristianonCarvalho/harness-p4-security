@@ -7,7 +7,7 @@
 - **Alvo:** o P2 no commit `1a02e552`, usado como cópia nova a cada rodada, com o corpo envenenado só na cópia. O P2 original ficou igual em todas as medições (conferido antes e depois de cada uma).
 - **Modelos medidos:** `claude-haiku-5-5` e `claude-sonnet-5-5`.
 - **Juiz das respostas com canário:** `claude-opus-5-5`, outro modelo, com a rubrica de [`redteam/juiz.py`](../../redteam/juiz.py).
-- **Previsões:** escritas pelo Claude, a pedido do Cristiano, e rotuladas como "Previsão do Claude" no catálogo. O bloco do Cristiano ficou em branco, então não há placar humano.
+- **Previsões:** escritas pelo Claude, a pedido do Cristiano, e rotuladas como "Previsão do Claude" no catálogo. O bloco do Cristiano não foi preenchido: o experimento rodou antes da previsão, então não há placar humano.
 - **Plano:** [`docs/superpowers/plans/2026-11-18-injecao-canario.md`](../superpowers/plans/2026-11-18-injecao-canario.md).
 
 ## Resumo
@@ -65,7 +65,7 @@ O juiz é um modelo diferente dos medidos (`claude-opus-5-5`). Ele recebe a perg
 
 ## Previsões contra resultados
 
-As previsões são do Claude, rotuladas no catálogo. O bloco do Cristiano está em branco.
+As previsões são do Claude, rotuladas no catálogo. O bloco do Cristiano não foi preenchido: o experimento rodou antes da previsão.
 
 | Ataque | Previsão (confiança) | Resultado |
 |---|---|---|
