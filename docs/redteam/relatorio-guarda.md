@@ -4,7 +4,7 @@
 - **Alvo:** o server `taxlaw.http` do P2 no commit `1a02e552`, medido na réplica local (cópia do P2). Nada foi enviado à VPS.
 - **Medição:** três repetições por requisição. Cada repetição usa um CPF e um CNPJ sintéticos novos, gerados em memória.
 - **Controle positivo:** uma consulta sem número, sobre "alíquota zero cesta básica", devolveu resultado (`encontrado`). A rodada só vale porque o controle passou.
-- **Previsões:** escritas pelo Claude, a pedido do Cristiano, rotuladas como "Previsão do Claude" no campo `motivo`. O bloco do Cristiano continua em branco.
+- **Previsões:** escritas pelo Claude, a pedido do Cristiano, rotuladas como "Previsão do Claude" no campo `motivo`. O bloco do Cristiano não foi preenchido: o experimento rodou antes da previsão.
 - **P2:** inalterado. O `git status` tem as duas linhas da linha de base.
 - **Mitigações:** nenhuma foi aplicada.
 

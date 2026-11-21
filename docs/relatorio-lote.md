@@ -27,7 +27,7 @@ Isso cumpre o critério do roadmap para este lote: *"um PR aberto por agente só
 
 ## Previsão contra resultado
 
-A previsão do Claude foi escrita e commitada antes do lote (`acc8f96`). O bloco do Cristiano ficou em branco.
+A previsão do Claude foi escrita e commitada antes do lote (`acc8f96`). O bloco do Cristiano não foi preenchido: o lote rodou antes da previsão.
 
 | Caso | Previsto (faz / gate) | Real | Acertos |
 |---|---|---|---|

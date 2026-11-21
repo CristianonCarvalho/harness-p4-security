@@ -89,7 +89,7 @@ flowchart TB
 | **Spec A:** pipeline "agente abre PR, gates decidem" | **concluída** em 2026-11-17: o lote de 6 casos rodou sem nenhum vazamento |
 | **Spec B:** red team de prompt injection no P2 | **base neutra, laboratório HTTP, guarda e injeção medidos.** Base: integridade do P2, cópia de trabalho, esquema do catálogo, estatística (Wilson), varredura de CPF e CNPJ e SAST com Bandit no CI deste repositório, réplica local e gate da VPS. Protocolo HTTP: sete ataques medidos na réplica, e três também na VPS (H1, H2 e H5): veja o [relatório HTTP](docs/redteam/relatorio-http.md). Guarda de CPF e CNPJ: H6 bloqueou em todas as repetições, e H7 vazou nas formas disfarçadas, sem mitigação aplicada: veja o [relatório da guarda](docs/redteam/relatorio-guarda.md). Injeção (H13): medição v2 com 210 rodadas e nenhuma obediência observada, com a ressalva de que o juiz não foi calibrado com obediência real: veja o [relatório v2](docs/redteam/relatorio-injecao-v2.md). A [v1](docs/redteam/relatorio-injecao.md) está superada. As sondas pendentes estão em [Cortes](#cortes) |
 | Texto "o que deu errado" | [concluído](docs/o-que-deu-errado.md), com fatos técnicos e a leitura autocrítica do Cristiano |
-| Previsão do Cristiano (bloco B) | em branco; só a previsão do Claude foi registrada |
+| Previsão do Cristiano (bloco B) | não preenchido: os experimentos rodaram antes da previsão; só a previsão do Claude foi registrada |
 
 ## Cortes
 

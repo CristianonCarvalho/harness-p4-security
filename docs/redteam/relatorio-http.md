@@ -4,7 +4,7 @@
 - **Alvo:** o server `taxlaw.http` do P2 no commit `1a02e552` (linha de base). Medido em duas frentes: a réplica local (cópia do P2) e a VPS `mcpreforma.cristianocarvalho.cloud`.
 - **Ataques:** H1, H2, H3, H4, H5, H8 e H9. H6 e H7 (CPF e CNPJ) e a injeção pelo texto da norma ficaram fora deste plano.
 - **Medição:** réplica, três repetições por requisição; VPS, uma execução por requisição (três requisições, abaixo do limite de 30).
-- **Previsões:** escritas pelo Claude, a pedido do Cristiano, que não escreveu as suas. Cada uma está marcada como "Previsão do Claude" no campo `motivo`. O bloco do Cristiano ficou em branco, então não há placar humano.
+- **Previsões:** escritas pelo Claude, a pedido do Cristiano, que não escreveu as suas. Cada uma está marcada como "Previsão do Claude" no campo `motivo`. O bloco do Cristiano não foi preenchido: os experimentos rodaram antes da previsão, então não há placar humano.
 - **P2:** inalterado antes e depois de todas as rodadas. O `git status` continua com as duas linhas da linha de base.
 - **Mitigações:** nenhuma foi aplicada. As recomendações abaixo são só isso.
 
